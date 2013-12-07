@@ -21,6 +21,9 @@ Step-Wise Instructions to Reconstruct Application for Source Code:
 Extra Credit:
 Implemented methods inIncidentArcs() and outIncidentArcs() for extra credit
 
+Notes:
+Undirected Graph not yet implemented.
+
 Other Documentations Avaliable:
 Reference Manual.txt
 Testing Documnet.txt
