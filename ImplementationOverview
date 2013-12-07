@@ -1,0 +1,535 @@
+
+ICS 311 Project 2: Graph ADT and Algorithms
+Due by 23:55 (11:55 pm) Monday December 2nd. 100 points.
+(Extended deadline. Previous deadline was Sunday November 24th.)
+
+Late submissions with penalty of 1% per hour accepted until 2:00 AM December 5th (50 hours = 50% off). Note that Project-3 is due two weeks later, so it is recommended that you not put this one off.
+
+Requirements stated on the Assignments Page are included in the requirements for this project.
+
+This has been increased from the originally planned 80 points to 100 points as it is absorbing a canceled homework on graphs and it is a substantial assignment.
+Change Log
+
+10/25 First Version
+    Changes from the 2012 version include: (1) Undirected graph methods not required; now in appendix. (2) Terminology and class for directed edges is now "Arc". (3) Testing requirements will be made more specific in future revisions.
+10/26
+    Realizing that there was no way for a client to retrieve data stored in vertices and arcs, added these methods.
+    Added key as a way the client can retrieve vertices.
+    Moved some methods not anticipated to be needed for Project-2 to appendix.
+    Added a hand-constructed graph for your testing.
+    Added other real world networks. 
+11/01
+    Minor corrections to method signatures (Object v, k ==> Object v, Object k)
+11/09
+    Clarification added to preamble: "you may use others' implementations of supporting data structures, such as linked lists or trees, as long as you implement the graph operations".
+    Suggestion (not required) made to read in other attribute data and store in the graph, as they may help you make sense of the results without having to refer back to the original file.
+    Most importantly, finished the graph metrics to be computed and the output requirements. Please read these carefully and notify me of any discrepancies, ambiguities, or questions ASAP. 
+11/27
+    Minor edits, primarily just spelling corrections, while reading this in preparation for writing Project 3.
+12/02
+    Corrected erroneous statistics for celegans.vna
+
+Overview
+
+This assignment has three parts.
+
+    Design an implementation of the Directed Graph ADT, and implement it.
+    Analyze and test your implementation.
+    Use your implementation to analyze graphs we will give you, including:
+        Reporting basic statistics such as number of vertices and edges (arcs) and minimum, average and maximum indegree and outdegree.
+        Finding strongly connected components.
+
+There are extra credit extensions. Your ADT may also be used for Implementation Assignment 3.
+Directed Graph ADT
+
+The ADT is for a Directed Graph G = (V, A) where V is a set of vertices and A a set of directed edges that we will call "arcs" to distinguish them from undirected edges. The vertices and arcs are objects in their own right, but can also have data associated with them.
+
+Below are the methods you need to implement. Many are adapted from Goodrich & Tamassia's textbook, but I have moved the methods for undirected graphs to the appendix of the present page, as they are not required. (You can process undirected graphs by installing arcs in both directions. Undirected methods may be implemented for extra credit.) Note that even when operating on vertices and arcs, these are methods on an instance g of Graph. For example, we write g.reverseDirection(a), not a.reverseDirection(). The key and data objects are of interest only to the client.
+
+There are various implementations available on the net. You may inspect others but must implement your own version of the methods below. (As discussed later, you may use others' implementations of supporting data structures, such as linked lists or trees, as long as you implement the graph operations.) If you want to take an approach that improves on the specification below, have a good rationale (not just avoiding work) and discuss it with the instructor first.
+Accessor Methods
+
+These methods access graphs and their components.
+
+numVertices
+public int numVertices()
+    Returns the number of vertices |V|
+
+numArcs
+public int numArcs()
+    Returns the number of arcs |A|.
+
+vertices
+public java.util.Iterator vertices()
+    Returns an iterator over the vertices V
+
+arcs
+public java.util.Iterator arcs()
+    Returns an iterator over the arcs (directed edges) A of G.
+
+getVertex
+public Vertex getVertex(Object key)
+    Returns the Vertex associated with client key.
+
+getArc
+public Arc getArc(Object source, Object target)
+    Returns the Arc that connects client keys source and target, or null if none.
+
+getVertexData
+public Object getVertexData(Vertex v)
+    Returns the client data Object associated with Vertex v.
+
+getArcData
+public Object getArcData(Arc a)
+    Returns the client data Object associated with Arc a.
+
+inDegree
+public int inDegree(Vertex v)
+    Returns the number of arcs incoming to v.
+
+outDegree
+public int outDegree(Vertex v)
+    Returns the number of arcs outgoing from v.
+
+inAdjacentVertices
+public java.util.Iterator inAdjacentVertices(Vertex v)
+    Returns an iterator over the vertices adjacent to v by incoming arcs.
+
+outAdjacentVertices
+public java.util.Iterator outAdjacentVertices(Vertex v)
+    Returns an iterator over the vertices adjacent to v by outgoing arcs.
+
+origin
+public Vertex origin(Arc a)
+    Returns the origin (start) vertex of Arc a.
+
+destination
+public Vertex destination(Arc a)
+    Returns the destination (end) vertex of Arc a.
+Mutators
+
+These are the methods by which you build and change graphs.
+
+insertVertex
+public Vertex insertVertex(Object key)
+public Vertex insertVertex(Object key, Object data)
+    Inserts a new isolated vertex indexed under (retrievable via) key and optionally containing an object data (which defaults to null).
+    Returns the new Vertex.
+
+insertArc
+public Arc insertArc(Vertex u, Vertex v)
+public Arc insertArc(Vertex u, Vertex v, Object data)
+    Inserts a new arc from an existing vertex to another, optionally containing an object data.
+    Returns the new Arc.
+
+setVertexData
+public void setVertexData(Vertex v, Object data)
+    Changes the data Object associated with Vertex v to data.
+
+setArcData
+public void setArcData(Arc a, Object data)
+    Changes the data Object associated with Arc a to data.
+
+removeVertex
+public Object removeVertex(Vertex v)
+    Deletes a vertex and all its incident arcs (and edges under the undirected extension).
+    Returns the client data object formerly stored at v.
+
+removeArc
+public Object removeArc(Arc a)
+    Removes an arc.
+    Returns the client data object formerly stored at a.
+
+reverseDirection
+public void reverseDirection(Arc a)
+    Reverse the direction of an arc.
+Annotators or Decorators (also known as Property Lists)
+
+These are how you annotate or "decorate" a graph temporarily during the run of an algorithm. By mapping keys to values on each object, we provide a general facility that makes multiple annotations possible. For example, you can annotate a node under keys "COLOR" and "PARENT" simultaneously.
+
+setAnnotation
+public void setAnnotation(Vertex v, Object k, Object o)
+public void setAnnotation(Arc a, Object k, Object o)
+    Annotates a vertex v or arc a with object o indexed by key k.
+
+getAnnotation
+public Object getAnnotation(Vertex v, Object k)
+public Object getAnnotation(Arc a, Object k)
+    Returns the object indexed by k annotating a vertex v or arc a.
+
+removeAnnotation
+public Object removeAnnotation(Vertex v, Object k)
+public Object removeAnnotation(Arc a, Object k)
+    Removes the annotation on a vertex v or arc a indexed by k and returns it.
+
+clearAnnotations
+public void clearAnnotations(Object k)
+    Removes all annotations on vertices or arcs indexed by k. Use this to clean up between runs.
+Implementation Notes
+
+Many implementations of the Graph ADT are possible. It will be up to you to choose the implementation based on the expected application characteristics:
+
+    In general we will be working with weighted directed graphs.
+    Graphs will be large (e.g., 40,000 vertices or more) and relatively sparse (e.g., most vertices connected to between 1 and 100 others, with rare exceptions).
+    A variety of algorithms will be applied. Many will require:
+        Iterating over all vertices, in some cases in no particular order, and in other cases by in order of some property (e.g., using a heap or topological sort).
+        Iterating over all arcs or edges, in some cases in no particular order, and in other cases by in order of some property (e.g., using a heap).
+        Efficient counting of and iteration over neighbors of a vertex (e.g., for degree and connectivity computations).
+        The ability to annotate vertices and edges, preferably without interfering with the primary data objects stored on graph elements (hence the annotation methods).
+    Some will require construction of secondary graphs (e.g., spanning trees, transpose graph).
+
+A chapter from Newman's (2010) book on Network Analysis has been distributed that discusses the advantages and disadvantages of different graph representations. A portion of a chatper from Goodrich & Tamassia's textbook discussing representation issues has also been distributed.
+Reusing Code
+
+Graph is a complex ADT that can be built out of many smaller ADT implementations. You may elect to reuse code for component ADTs (other than the Graph itself!), by using:
+
+    Java collections as component ADTs,
+    Your own Dynamic Set implementation or other prior code,
+    Another student's Dynamic Set implementation: tell me whose you used, as I will give them extra credit.
+    External Open Source Software components.
+
+However, you must write your own code for the Graph ADT class and methods (which may, in turn, call one of the above implementations).
+Annotations
+
+The annotation methods implement "property lists", which are ways a client application can associate arbitary data with each edge and/or vertex. This could also be done by subclassing under some interface, e.g., "GraphSearchableByDFS", that has instance variables for discovery, finishing and parent data, but that could get awkward when applying a lot of algorithms! So instead we provide a generic way for an application to say "please store this data under this key." The client algorithm is responsible for checking for prior values, etc.
+
+The annotation methods can be implemented with hash tables. You can attach a HashMap<key,value> to each vertex and arc. Alternatively, you could have one hash table for each key covering the entire graph and hash from graph object to value (this makes the clear operation easier).
+Iterators
+
+A good implementation of the Iterator interface can keep track of where it is in a sequence of objects being iterated over, hiding implementation details from the client. I have specified iterators instead of enumerators since they allow one to safely remove objects from the underlying collection during traversal. If an unsafe modification is attempted, ConcurrentModificationException will be thrown.
+Partial Implementations
+
+There is a lot to implement here. Once you have your underlying representation clearly thought through and implemented, each method above should be fairly easy, often even trivial to write. But, if you find yourself pressed for time, leave out the ADT methods that you don't need for the SCC part of the assignment (later in this document), and tell us you have done so. You will have points taken off, but not as many as if you had not done the SCC part. You can then add the methods you need for Project 3 later.
+Miscellaneous Comments
+
+A more sophisticated design would be hierarchical, with directed graphs and decorators extending a core graph interface or abstract class. You could also use generics. Again, all that is up to you.
+
+More error checking can be done than is implied by the InvalidEdgeExceptions. This is up to you.
+Analyzing and Testing the ADT
+
+You are responsible for the following and will include reports on the following in your documentation:
+
+    Analyze the complexity of all ADT operations under your chosen implementation.
+    Design adquate tests for your ADT and run them.
+
+Analysis
+
+For each and every one of the methods listed in the ADT section above, give a brief analysis of the big-O or Θ (where applicable) asymptotic performance of the method in terms of V, E and/or deg(v) as appropriate.
+
+You need not repeat a detailed argument for each method. You might find it best to first provide a preamble with parts of the analysis that apply to many methods, and then refer to that briefly in each method.
+
+For example, the preamble might say "an adjacency matrix representation was used, so any method that must processes the vertices adjacent to a given vertex is O(V)." Then for each relevant method say simply "This method processes the adjacent vertices, so is O(V)." (I am not endorsing matrix representations for large sparse graphs; just using this as an example!)
+Testing
+
+We don't have any specific requirements for how you test your ADT for correctness; only that you do so. Unit testing using JUnit would be the rigorous way to testing, but since this is an algorithms course rather than a software engineering course we are not grading on whether you use JUnit. Just come up with a plan that convinces you that your ADT method implementations are correct, and report the results in a manner that convinces others. Test on small well understood graphs so you can verify results (e.g., the SCC-Test.vna graph below). Include boundary conditions such as disconnected graphs, and graphs with no edges.
+Graphs for Analysis
+
+You will run algorithms on data we provide to report degree distributions and to find the strongly connected components.
+Data and Formats
+
+We are providing several graphs for testing, and may test your program on graphs different than the ones we provide.
+
+The graphs are provided using Netdraw's VNA format, primarily because it is a simple format, easy to parse. See: https://gephi.org/users/supported-graph-formats/netdraw-vna-format/. Netdraw's .VNA format allows one to give vertices arbitrary names under the attribute ID, and to specify other attributes.
+
+If you decide you want to make your ADT implementation a usable tool for future work, consider the more modern XML-based representations GEFX or GraphML: https://gephi.org/users/supported-graph-formats/. (These are already in the distribution directory: just change the extension of the URL.)
+.VNA
+
+The .VNA files list vertices after the line *Node data or *Node properties (there is a distinction between data and properties we won't be concerned with; case is not significant). Then edges are listed after the line *Tie data (or *tie data). A line of column headers follows each of these. After *Node data there must be the column ID and there may be other data columns (see example below). After *Tie data there must be the columns from to, to indicate the source and target vertex, and there may be other columns, in particular strength for weighted graphs. Additional data on the vertices and edges may follow. You may ignore this additional data for this assignment, but it will be useful in interpreting the meaning of some of your results, so I suggest that you read the other attributes in as a string and store them in your graph.
+
+Here is an example from the Gephi documentation cited above.
+
+*node data
+ID name gender age
+j101 joe male 56
+w067 wendy female 23
+b303 bill male 48
+*tie data
+from to strength
+j101 w067 1
+w067 j101 2
+j101 b303 1
+w067 b303 5
+
+Clearly, when you first read a line you expect *node data followed by a line with the attributes. Then you read lines to create vertices, but check whether "*" is the first character of each line. If it is, you expect it to be *tie data, and then read in tie attributes and expect to read in ties until the file ends.
+Simple Graph for Testing
+
+The following small hand-constructed graph can be used for testing basic Graph ADT functions, as you can visually inspect that conrrect responses are being given. It has been designed for testing strongly connected component implementations:
+
+SCC-Test.vna
+
+Statistics:
+
+    Minimum In & Out Degree: 0
+    Average Degree: 1.634
+    Maximum In & Out Degree: 4
+    Network Diameter: 8
+    Avg. Path Length: 2.614
+    Graph Density: 0.041
+    Weakly Connected Components: 5
+    Strongly Connected Components: 12
+    Modularity: 0.739; 8 communities
+
+Real World Networks
+
+You will test your program on the following graphs derived from real-world networks, and report the graph metrics and number of SCCs. The networks are listed in order of increasing size. Use the best computer available to you (in terms of CPU speed, physical memory, and disk space available for virtual memory), and run it through the largest network you can get your software to work on. You should get as far as the Tapped In network. The last network (a small sample of the Web from Google) will probably not be possible.
+
+C. Elegans: celegansneural.vna
+    A weighted, directed network representing the neural network of C. Elegans, a roundworm that is easily grouwn in the laboratory and widely used for biological research. It has 297 vertices and 2345 edges. Average degree is 7.896; Network diameter 14; Graph density 0.027; Average path length 3.992. For purposes of testing your SCC algorithm, this graph has 1 connected component and 57 strongly connected components. The data were taken from the web site of Prof. Duncan Watts at Columbia University.
+    Source: http://cdg.columbia.edu/cdg/datasets (and http://www-personal.umich.edu/~mejn/netdata/)
+    Citations: J. G. White, E. Southgate, J. N. Thompson, and S. Brenner, "The structure of the nervous system of the nematode C. Elegans", Phil. Trans. R. Soc. London 314, 1-340 (1986). D. J. Watts and S. H. Strogatz, "Collective dynamics of `small-world' networks", Nature 393, 440-442 (1998).
+Political Blogs: political-blogs.vna
+    Political blogosphere Feb. 2005. Data compiled by Lada Adamic and Natalie Glance. This is a directed graph according to who references whom, but unweighted (all the weights are 1.0). The original data classifies the nodes as "liberal" or conservative": this is coded as a numeric value. The node field source gives the name of the blog (there are duplicates). You may want to read in the value and source as node attributes to facilitate interpretation of results. There are 1490 vertices and 19025 directed edges. Average degree is 12.768, average weighted degree 12.812, network diameter 9, graph density 0.009, average path length 3.39. There are 268 weakly connected components, and I will let you tell me how many strongly connected components.
+    Source: http://www-personal.umich.edu/~mejn/netdata/
+    Citation: Lada A. Adamic and Natalie Glance, "The political blogosphere and the 2004 US Election", in Proceedings of the WWW-2005 Workshop on the Weblogging Ecosystem (2005).
+Wikipedia vote network: wiki-Vote.vna
+    Wikipedia is a free encyclopedia written collaboratively by volunteers around the world. A small part of Wikipedia contributors are administrators, who are users with access to additional technical features that aid in maintenance. In order for a user to become an administrator a Request for Adminship (RfA) is issued and the Wikipedia community via a public discussion or a vote decides who to promote to adminship. Using the complete dump of Wikipedia page edit history (from January 3 2008) Leskovec and colleagues extracted all administrator elections and vote history data. This results in 2,794 elections with 103,663 total votes and 7,066 users participating in the elections (either casting a vote or being voted on). Out of these, 1,235 elections resulted in a successful promotion, while 1,559 elections did not result in the promotion. About half of the votes in the dataset are by existing admins, while the other half comes from ordinary Wikipedia users. The network contains all the Wikipedia voting data from the inception of Wikipedia till January 2008. Nodes in the network represent wikipedia users and a directed edge from node i to node j represents that user i voted on user j. 7115 Nodes, 103,689 Edges.
+    Source: http://snap.stanford.edu/data/wiki-Vote.html
+    Citations: J. Leskovec, D. Huttenlocher, J. Kleinberg. Signed Networks in Social Media. CHI 2010.; J. Leskovec, D. Huttenlocher, J. Kleinberg. Predicting Positive and Negative Links in Online Social Networks. WWW 2010.
+
+High-energy physics theory citation network: cit-HepTh.vna
+    Arxiv HEP-TH (high energy physics theory) citation graph is from the electronic publication venue arXiv and covers all the citations within a dataset of 27,770 papers with 352,807 edges. If a paper i cites paper j, the graph contains a directed edge from i to j. If a paper cites, or is cited by, a paper outside the dataset, the graph does not contain any information about this. The data covers papers in the period from January 1993 to April 2003 (124 months). It begins within a few months of the inception of the arXiv, and thus represents essentially the complete history of its HEP-TH section. The data was originally released as a part of 2003 KDD Cup.
+    Source: http://snap.stanford.edu/data/cit-HepTh.html. (You can get paper authors, titles and abstracts here.)
+    Citations: J. Leskovec, J. Kleinberg and C. Faloutsos. Graphs over Time: Densification Laws, Shrinking Diameters and Possible Explanations. ACM SIGKDD International Conference on Knowledge Discovery and Data Mining (KDD), 2005. J. Gehrke, P. Ginsparg, J. M. Kleinberg. Overview of the 2003 KDD Cup. SIGKDD Explorations 5(2): 149-151, 2003.
+Enron email network: email-Enron.vna
+    Enron email communication network covers all the email communication within a dataset of around half million emails. This data was originally made public, and posted to the web, by the Federal Energy Regulatory Commission during its investigation. Nodes of the network are email addresses and if an address i sent at least one email to address j, the graph contains an undirected edge from i to j. There are 36,692 nodes and 183,831 edges. Note that non-Enron email addresses act as sinks and sources in the network as the dataset only includes communication with the Enron email addresses. The Enron email data was originally released by William Cohen at CMU.
+    Source: http://snap.stanford.edu/data/email-Enron.html. (The actual emails are available!)
+    Citations: J. Leskovec, K. Lang, A. Dasgupta, M. Mahoney. Community Structure in Large Networks: Natural Cluster Sizes and the Absence of Large Well-Defined Clusters. Internet Mathematics 6(1) 29--123, 2009. B. Klimmt, Y. Yang. Introducing the Enron corpus. CEAS conference, 2004.
+Tapped In: ti-full.vna
+    Graph of actors, chat rooms, threaded discussions, and files shared (collectively, "actants") in the TappedIn.org network of education professionals, Sept. 2005 through May 2007. There are just under 40K nodes and 200K edges. Directed: direction of arc indicates direction of influence, e.g., actor→room indicates that the actor chatted in the room and room→actor indicates that the actor listened to chat in the room. Weighted: the weight indicates how many events took place between the actant nodes in the indicated direction. Bimodal: edges only go between actors and artifacts (chats, discussions and files); never between actors and other actors, and never between artifacts. Multimodal: You can infer the actant type from the node label: numbers are participants; ROOM indicates chat room; and DISC_ID a discussion. The graph is very sparse, and will challenge any attempt at a matrix representation. It has thousands of SCCs but one is very large.
+    Citation: Suthers, D. D., & Chu, K.-H. (2012). Multi-mediated community structure in a socio-technical network. Proceedings of LAK12: 2nd International Conference on Learning Analytics & Knowledge, April 29 - May 2, 2012, Vancouver, BC. New York: ACM.
+Gnutella peer-to-peer network, August 31 2002: p2p-Gnutella31.vna
+    A snapshot of the Gnutella peer-to-peer file sharing network from August 31, 2002. There are total of 9 snapshots of Gnutella network collected in August 2002: this one has 62,586 nodes and 147,892 edges. Nodes represent hosts in the Gnutella network topology and edges represent connections between the Gnutella hosts.
+    Source: http://snap.stanford.edu/data/p2p-Gnutella31.html.
+    Citations: J. Leskovec, J. Kleinberg and C. Faloutsos. Graph Evolution: Densification and Shrinking Diameters. ACM Transactions on Knowledge Discovery from Data (ACM TKDD), 1(1), 2007. M. Ripeanu and I. Foster and A. Iamnitchi. Mapping the Gnutella Network: Properties of Large-Scale Peer-to-Peer Systems and Implications for System Design. IEEE Internet Computing Journal, 2002.
+Epinions social network: soc-Epinions1.vna
+    This is a who-trustd-whom online social network of a a general consumer review site Epinions.com. Members of the site can decide whether to "trust" each other. All the trust relationships interact and form the Web of Trust which is then combined with review ratings to determine which reviews are shown to the user. There are 75,879 nodes (users) and 508,837 edges (trust relations).
+    Source: http://snap.stanford.edu/data/soc-Epinions1.html.
+    Citation: M. Richardson and R. Agrawal and P. Domingos. Trust Management for the Semantic Web. ISWC, 2003.
+Slashdot social network, February 2009: soc-Slashdot0902.vna
+    Slashdot is a technology-related news website known for its specific user community. The website features user-submitted and editor-evaluated current primarily technology oriented news. In 2002 Slashdot introduced the Slashdot Zoo feature which allows users to tag each other as friends or foes. The network contains friend/foe links between the users of Slashdot. The network was obtained in February 2009, and has 82,168 nodes (users) and 948,464 edges (the source file has no attributes on edges so I assume these are friend relations).
+    Source: http://snap.stanford.edu/data/soc-Slashdot0902.html.
+    Citation: J. Leskovec, K. Lang, A. Dasgupta, M. Mahoney. Community Structure in Large Networks: Natural Cluster Sizes and the Absence of Large Well-Defined Clusters. Internet Mathematics 6(1) 29--123, 2009.
+Google Web Graph: web-google.vna
+    Nodes represent web pages and directed unweighted edges represent hyperlinks between them. The data was released in 2002 by Google as a part of Google Programming Contest. There are 875,713 nodes and 5,105,039 edges (I had to go to my 16G machine just to load it, and will be impressed if anyone can process this one).
+    Source: http://snap.stanford.edu/data/web-Google.html
+    Citation: J. Leskovec, K. Lang, A. Dasgupta, M. Mahoney. Community Structure in Large Networks: Natural Cluster Sizes and the Absence of Large Well-Defined Clusters. Internet Mathematics 6(1) 29--123, 2009.
+
+Metrics to be Computed
+
+You will compute various metrics on the graphs that are useful for characterizing the nature of the real world networks that they model.
+Degree Distributions
+
+You will generate a summary of the minimum, average and maximum indegree and outdegree of the vertices graph. To do this, you will need to iterate over all g.v ∈ g.vertices(), calling g.inDegree(v) and g.outDegree(v) on each. Record the minimums and maximums so far and keep a running total of inDegree and outDegree (to be safe, use int or even long integer to prevent overflow on large graphs) so you can divide by g.numVertices() at the end to find the average.
+
+Degree distributions are sometimes used to characterize the structure of a network or community. The degree distribution of many natural networks follow a power law. An extra credit project could be to graph (as a histogram) the degree distribution of the network, as you can't see the power law with just min, avg and max. Talk to me if interested.
+Graph Density
+
+Graph density is also used to characterize natural graphs. The density of edges affects whether we expect other phenomena, such as the likelihood that most vertices are in one giant connected component. Density is defined as the fraction of possible edges that are actually present. Compute it as the number of arcs g.numArcs() divided by the possible number of arcs g.numVertices() * (g.numVertices() - 1), where the - 1 is to exclude self loops (which are allowed in general but don't make sense in graphs that model the natural systems we are studying).
+Strongly Connected Components
+
+You will find the strongly connected components of the graphs using the algorithms discussed in class (Topic-14), the textbook Chapter 22, and my futher notes below. The algorithm Strongly-Connected-Components requires that you implement DFS in both its regular and modified version (the latter considers vertices in order of topological sort generated by the former).
+
+Here is a simple way to annotate vertices with the strongly connected components they belong to. Create a counter scc that, like time is an instance variable accessible from both methods. Then increment it each time you start a new DFS-VISIT run from an unvisited vertex:
+
+DFS(G)
+1  for each vertex u in G.V
+2      u.color = WHITE
+3      u.parent = NIL
+4  time = 0
+5  scc = 0 
+6  for each vertex u in G.V // second pass of SCC will respect topological sort!
+7      if u.color = WHITE
+8          scc = scc + 1 
+9          DFS-VISIT(G, u)
+
+DFS-VISIT (G, u) 
+1  time = time + 1 
+2  u.d = time
+3  u.color = GRAY
+4  u.scc = scc 
+5  for each v in G.Adj[u] 
+6  ... (rest remains the same)  
+
+Note that this gives correct assignments only on the second call from SCC to DFS! You should be able to explain why (e.g., on an exam).
+
+You can also modify the DFS code to count the number of vertices in each SCC, or you can write code to figure this out after DFS has run. For example, set up a hash table mapping SCCs as keys to counts initialized to 0. Then iterate over all v in G.V, incrementing the count at hash(v.scc).
+Running out of Memory
+
+If you run out of memory, increase the heap size available to Java using the -Xmx argument (or set the corresponding preference in your IDE). The default is 128M. Try 512M, or go higher if your machine has the memory to spare. (You can go beyond the physical memory of your machine if you have disk space for virtual memory, and the patience to wait for slower runs given the disk access.) See this discussion
+
+If you still have problems, consider whether you have a "memory leak" (are retaining pointers to objects that are no longer needed, so they can't be garbage collected); or perhaps your representation is inefficient for large graphs? If you used the adjacency matrix you may have problems.
+Output Required
+
+For every graph you analyze, you will print some basic statistics on the graph, as indicated below. For the two smallest graphs, you will also print out the members of the strongly-connected components.
+Graph Statistics for All Graphs
+
+Print the following statistics for every graph you are able to load and analyze. These statistics help us verify that the graph was read in correctly, and also will be used to draw conclusions about the real world networks being modeled (more on this in Project 3).
+
+    number of vertices
+    number of edges
+    graph density
+    minimum, average and maximum indegree
+    minimum, average and maximum outdegree
+    number of strongly connected components
+    percentage of vertices in the largest strongly connected component
+
+Output Format
+
+Please use this output format so it is easy for the TA to read (replace ##### with the numbers):
+
+  ------------------------------------------------------------
+  Graph <filename>
+  ------------------------------------------------------------
+  |V| = #####
+  |A| = #####
+  Density = #####
+  Degree distribution: minimum  average  maximum
+    inDegree           ####     ####     #####
+    outDegree          ####     ####     #####
+  Number of Strongly Connected Components: ####
+  Percent Vertices in Largest Strongly Connected Component: ####
+
+(One of these columns should have the same values for both inDegree and outDegree. Why? Think of the Handshaking Lemma.)
+Strongly Connected Components for Two Smallest Graphs
+
+Print the Strongly Connected Components (SCCs) for the two smallest graphs SCC-Test.vna and celegansneural.vna. Some of our graphs will have thousands of SCCs, some with tens of thousands of vertices in the largest SCCs, so we won't ask you to print out the SCCs for the other graphs! For those you do print out, you will:
+
+    Compute the size of each component
+    Sort the component list by size
+    Print them out in order including the size followed by the labels on the vertices.
+
+Output Format
+
+Here is the output format (which continues the previous example output following the line "Number of Strongly Connected Components: ####"):
+
+    SCC  Size  Members 
+     a.  sa    va,1, va,2, ... va,sa
+     b.  sb    vb,1, vb,2, ... vb,sb
+     c.  sc    vc,1, vc,2, ... vc,sc
+     ... 
+
+where
+
+    a, b, c ... are the (arbitary) component numbers you assigned during the computation, or you may use 1, 2, 3 ... if you did not assign numbers.
+    si ... are the sizes of the respective components.
+    vi,j is the jth vertex in SCC i. These will be integers for the small test graphs, as vertex names are integers.
+
+This will run up to line 12 for SCC-Test.vna or line 57 for celegansneural.vna.
+
+(Once you have printed these out you will notice a difference between the distribution of SCCs in the artificial SCC-Test network and the natural C. Elegans neural network. Why would the C. Elegans network have the SCCs of the sizes you found?)
+Turning It In
+
+Requirements stated on the Assignments Page are included in the requirements for this project, with the following additional comments specific to this assignment:
+
+    Readme.txt is as specified in the page linked above. Be sure to include ALL instructions needed to compile your code, including other software it assumes is installed (e.g., Ant, JUnit.).
+    Operation Manual is not required provided you cover the (simple) operation of this program in the Readme.txt.
+    Reference Manual will include asymptotic run time analysis of your implementation, along with other program design documentation specified in the Assignments Page.
+    Testing Document will include testing of the ADT, the graph results described above, and your discussion of the results (not a lot of discussion is needed in this assignment, as we are not asking you to interpret the SCC results or to compare algorithms).
+
+Grading
+
+This is our proposed grading criteria. Some adjustments may be made when we see where the greatest effort is required. Total is 100 points
+
+Program: 80 points
+
+        35 points for full impementation of Graph ADT.
+        5 points for adquate testing of Graph ADT (in Testing Document). (Note: 20 more points under Analysis for theoretical analysis.)
+        35 points for adeqeuate implementation of Strongly Connected Components and graph statistics. (Note: 5 more under documentation for including these results)
+        5 for all other aspects, including providing adequate output, error handling, evidence of good design (at TAs discretion).
+
+Analysis and Documentation 20 points
+    These are in the Readme, Reference and Testing documents.
+
+        5 points for adequate Readme making it easy to start
+        10 for adequate analysis of the ADT complexity (in the Reference Manual)
+        5 points for showing and discussing graph statistics and SCC in Testing Document
+
+Appendices (Not Required)
+
+Here I document methods that are not required but may be implemented for extra credit.
+Additional Methods for Directed Graphs
+
+I don't anticipate needing these methods in our assignments, though they could be implemeted to provide a more fully functional utility.
+Accessors
+
+inIncidentArcs
+public java.util.Iterator inIncidentArcs(Vertex v)
+    Returns an iterator over the incoming arcs of v.
+
+outIncidentArcs
+public java.util.Iterator outIncidentArcs(Vertex v)
+    Returns an iterator over the outgoing arcs of v.
+Mutators
+
+setDirectionFrom
+public void setDirectionFrom(Arc a, Vertex v)
+    Sets the direction of an arc away from a vertex.
+    (The undirected version will take Edge as parameter and make it directed.)
+    Throws InvalidArcException when v is not an endpoint of a.
+
+setDirectionTo
+public void setDirectionTo(Arc a, Vertex v)
+    Sets the direction of an arc towards a vertex v.
+    (The undirected version will take Edge as parameter and make it directed.)
+    Throws InvalidArcException when v is not an endpoint of a.
+Methods for Undirected Graphs
+
+I have moved the undirected graph methods into this section so that you know they exist and in case someone wants to try a full implementation for extra credit. Some of these methods refer to directed graphs but are here because they are only needed when there are also undirected edges present. Edges in an undirected graph are in class "Edge"; Arc is for directed graphs. I would implement Arc as a specialization of Edge that leaves the vertex pair instance variable intact but adds instance variables for source and origin.
+Accessors (Undirected or Mixed)
+
+If these are called on a directed or mixed graph then direction is ignored. This means that both incoming and outgoing edges would be included in counting and accessing incident edges and adjacent vertices.
+
+edges
+public java.util.Iterator edges()
+    Returns an iterator over the edges E
+
+numEdges
+public int numEdges()
+    Returns the number of edges, both directed and undirected.
+
+degree
+public int degree(Vertex v)
+    Returns the number of edges (directed and undirected) incident on v.
+
+adjacentVertices
+public java.util.Iterator adjacentVertices(Vertex v)
+    Returns an iterator of the vertices adjacent to v.
+
+incidentEdges
+public java.util.Iterator incidentEdges(Vertex v)
+    Returns an iterator of the edges incident on v.
+
+endVertices
+public Vertex[] endVertices(Edge e)
+    Returns an array of the two end vertices of e.
+
+opposite
+public Vertex opposite(Vertex v, Edge e)
+    Given v is an endpoint of e.
+    Returns the end vertex of e different from v.
+    Throws InvalidEdgeException when v is not an endpoint of e.
+
+areAdjacent
+public boolean areAdjacent(Vertex v1, Vertex v2)
+    Returns true iff v1 and v2 are adjacent by a single edge.
+
+undirectedEdges
+public java.util.Iterator undirectedEdges()
+    Returns an iterator over the undirected edges of G.
+
+isDirected
+public boolean isDirected(Edge e)
+    Returns true if e is directed, false otherwise. (Can be implemented as test for class membership in Arc.)
+Mutators (Undirected or Mixed)
+
+These are the methods by which you build and change graphs.
+
+insertEdge
+public Edge insertEdge(Vertex u, Vertex v, Object info)
+    Inserts a new undirected edge that contains info between two existing vertices.
+    Returns the new edge.
+
+makeUndirected
+public void makeUndirected(Edge e)
+    Makes a directed edge undirected. Does nothing if the edge is undirected (hence the parameter is of type Edge, not Arc).
+Last modified: Tue Dec 3 16:35:42 HST 2013 
