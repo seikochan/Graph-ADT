@@ -1,0 +1,171 @@
+Requirements:
+-------------
+Must provide a .vna as a command line arugment run the GraphADT metrics on.  Example test files are provided under testFiles folder.
+
+Organization:
+-------------
+DirectedGraph.java - Directed Graph ADT which includes all required methods and utilizes Arc and Vertex.
+
+DirectedGraphDriver.java - Driver of GraphADT.  Creates a graph ADT based of data from a given .vna file.  Runs specified metrics on that graph.
+
+BinarySearchTree.java - Binary Search Tree ADT which utilizes TreeNode.
+
+TreeNode.java - TreeNode ADT.
+
+Arc.java - Arc ADT that can hold client data.  
+
+Vertex.java - Vertex ADT that can hold client data.
+
+*REFER TO JAVADOCS IN folder doc -> index.html
+
+
+Runtime Analysis:
+-----------------
+*runtime analysis is done only for DirectedGraph ADT implementation
+
+____________CONSTRUCTOR_____________
+public DirectedGraph()
+	- O(1)
+	- This is because it is just initializing the class variables.	
+
+_____________ACCESSOR_______________
+public int numVertices() 
+	- O(1)
+	- This is becasue it is just returning the class variable of the number of vertices
+
+public int numArcs() 
+	- O(1)
+	- This is because it is just returning the class varible of the number of arcs. 
+
+public Iterator<Vertex<E>> vertices()
+	- O(V)
+	- This is because the VertexIterator class goes through all the entries in the outAdjTree, which has one entry per a vertex.  Therefore it runs V times to put each vertex into the stack and return it.
+
+public Iterator<Arc<E>> arcs()
+	- O(V * degree(u))
+	- This is because the ArcIterator class goes through all the entries in the inAdjTree, which has one entry per a vertex.  But for each entry it needs to add in all the arcs, which will be degree(u), the amount of adjacent vertices to u.  Therefore it runs degree(u), V times, meaning O(V * degree(u)).
+
+public Vertex<E> getVertex(E key)
+	- O(1)
+	- Since the vertex is stored in the outAdjTree as the root node of the BST at the vertex key, it takes O(1) to get the BST of the vertex (since its a Hashtable), then O(lgn) to search for the vertex in the BST, but since the vertex is always the root node of the BST, it searchs in O(1), therefore it takes O(1) + O(1) = O(1).
+
+public Arc<E> getArc(E source, E target)
+	- O(lg(degree(u)))
+	- Since the arc is stored in the outAdjTree as an item in the BST, it takes O(1) to get the BST of the vertex (since its a Hashtable), then O(lgn) to search for the arc in the BST, which contains degree(u) of adjacent vertices to u.  Therefore it takes O(1) + O(lg(degree(u))) = O(lg(degree(u))).
+
+public Object getVertexData(Vertex<E> v)
+	- O(1)
+	- This is because the method just calls the getData() method on the given vertex which just returns the data which takes O(1).
+
+public Object getArcData(Arc<E> a)
+	- O(1)
+	- This is because the method just calls the getData() method on the given arc which just returns the data which takes O(1).
+
+public long inDegree(Vertex<E> v)
+	- O(1)
+	- This is because the method just calls the getInDegree() method on the given vertex which just returns the inDegree which takes O(1).
+
+public long outDegree(Vertex<E> v)
+	- O(1)
+	- This is because the method just calls the getOutDegree() method on the given vertex which just returns the outDegree which takes O(1).
+
+public Iterator<Vertex<E>> inAdjacentVertices(Vertex<E> v)
+	- O(degree(u))
+	- This is because the InVertexIterator gets the BST of the given v from inAdjTree, which takes O(1) since its a Hashtable.  Then it goes through all those adjacent vertices to u, which is degree(u). Therefore it is O(1 * degree(u)) = O(degree(u))
+
+public Iterator<Vertex<E>> outAdjacentVertices(Vertex<E> v)
+	- O(degree(u))
+	- This is because the OutVertexIterator gets the BST of the given v from outAdjTree, which takes O(1) since its a Hashtable.  Then it goes through all those adjacent vertices to u, which is degree(u). Therefore it is O(1 * degree(u)) = O(degree(u))
+	
+public Iterator<Arc<E>> inIncidentArcs(Vertex<E> v)
+	- O(degree(u))
+	- This is because the InArcIterator gets the BST of the given v from inAdjTree, which takes O(1) since its a Hashtable.  Then it goes through all those adjacent arcs to u, which is degree(u). Therefore it is O(1 * degree(u)) = O(degree(u))
+
+public Iterator<Arc<E>> outIncidentArcs(Vertex<E> v)
+	- O(degree(u))
+	- This is because the OutArcIterator gets the BST of the given v from outAdjTree, which takes O(1) since its a Hashtable.  Then it goes through all those adjacent vertices to u, which is degree(u). It skips the first root node but this does not change the asymptotic runtime of this method. Therefore it is O(1 * degree(u)) = O(degree(u)).
+
+public Vertex<E> origin(Arc<E> a)
+	- O(1)
+	- This is because the method just calls the getSource() method on the given arc which just returns the source which takes O(1).
+
+public Vertex<E> destination(Arc<E> a)
+	- O(1)
+	- This is because the method just calls the getTarget() method on the given vertex which just returns the target which takes O(1).
+
+
+_____________MUTATOR_______________
+public Vertex<E> insertVertex(E key)
+	- O(1) 
+	- Since it just calls insertVertex(Vertex<E> vertex).
+
+public Vertex<E> insertVertex(E key, Object data)
+	- O(1) 
+	- Since it just calls insertVertex(Vertex<E> vertex).
+
+public Vertex<E> insertVertex(Vertex<E> vertex)
+	-O(1)
+	-Since the an AdjTree is used via  Hashtable, the time it takes to add something is O(1), therefore to create a new Vertex and insert it into the AdjTree, it takes O(1).
+
+public Arc<E> insertArc(Vertex<E> u, Vertex<E> v)
+	- O(lg(degree(u))) 
+	- Since it just calls insertArc(Arc<E> arc).
+
+public Arc<E> insertArc(Vertex<E> u, Vertex<E> v, Object data)
+	- O(lg(degree(u)))
+	- Since it just calls insertArc(Arc<E> arc).
+
+public Arc<E> insertArc(Arc<E> arc)
+	- O(lg(degree(u)))
+	- Since the method needs to store the arc the outAdjTree and inAdjTree, it takes O(1) to get the BST of the vertex (since its a Hashtable), then O(lgn) to search for the arc in the BST, which contains degree(u) of adjacent vertices to u.  Therefore it takes O(1) + O(lg(degree(u))) + O(1) + O(lg(degree(u))) = O(lg(degree(u))).
+
+public void setVertexData(Vertex<E> v, Object data)
+	- O(1)
+	- Since it just calls the method setData() on v which just sets the class variable which takes O(1).
+
+public void setArcData(Arc<E> a, Object data)
+	- O(1)
+	- Since it just calls the method setData() on a which just sets the class variable which takes O(1).
+
+public Object removeVertex(Vertex<E> v)
+	-O(degree(u))
+	- Since you iterate using outAdjacentVertices() it has O(degree(u)) from above.  Removing an item from a tree is O(lgn) but the tree contains degree(u) so its O(lg(degree(u))).  It repeats over the inAdjacentVertices() which has O(degree(u)) from above.  It then removes from inAdjTree =  O(lg(degree(u))) again.  So the run time is  O(degree(u)) + O(lg(degree(u))) + O(degree(u)) + O(lg(degree(u))) = O(degree(u)).
+
+public Object removeArc(Arc<E> a)
+	- O(lg(degree(u)))
+	- Since the method deletes an item from a BST in the outAdjTree which contains lg(degree(u)) adjacent items, this takes O(degree(u)).  Then it deletes from the inAdjTree which is also lg(degree(u)).  Thus the runtime is O(lg(degree(u))).
+
+public void reverseDirection(Arc<E> a)
+	- O(lg(degree(u)))
+	- It calls removeArc() which is O(lg(degree(u))).  Then it reverses which just switchs the source and target vertices of the arc which is done in O(1).  Then it calls insertArc() which is O(lg(degree(u))).  Thus the runtime is O(lg(degree(u))).
+
+_____________ANNOTATOR_______________
+public void setAnnotations(Vertex<E> vertex, E key, Object note)
+	-O(1)
+	-Since the an annotations is used via  Hashtable, the time it takes to set something is O(1).
+
+public void setAnnotations(Arc<E> arc, E key, Object note)
+	-O(1)
+	-Since the an annotations is used via  Hashtable, the time it takes to set something is O(1).
+
+public Object getAnnotations(Vertex<E> vertex, E key)
+	-O(1)
+	-Since the an annotations is used via  Hashtable, the time it takes to find something is O(1).
+
+
+public Object getAnnotations(Arc<E> arc, E key)
+	-O(1)
+	-Since the an annotations is used via  Hashtable, the time it takes to find something is O(1).
+
+
+public Object removeAnnotations(Vertex<E> vertex, E key)
+	-O(1)
+	-Since the an annotations is used via  Hashtable, the time it takes to remove something is O(1).
+
+public Object removeAnnotations(Arc<E> arc, E key)
+	-O(1)
+	-Since the an annotations is used via  Hashtable, the time it takes to remove something is O(1).
+
+public void clearAnnotations(E key)
+	- O(V)
+	- Since it iterates over the vertices (O(V)) twice and just removeAnnotations() (which is O(1)) runtime is O(2V) = O(V).
