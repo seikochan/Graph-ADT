@@ -1,0 +1,126 @@
+
+ICS 311 Fall 2013 Assignments
+
+This page discusses general procedures for implementation assignments and extra credit projects. See the individual assignment pages for details.
+Implementation Assignments
+Overview
+
+There will be three implementation assignments. These will involve writing Java implementations of abstract data types and associated algorithms, and testing the implementations on sample data. You will also write documentation describing your design and implementation and test results. You may be expected to present your results in class. The assignments will get progressively more difficult. For the first implementation assignment, you will be told what to implement, and it will be weighted 6% (60 points). For the second assignment you will need to make some implementation choices. The second assignment will be weighted 8% (80 points). The third assignment will require some research and decision making on your part to solve the problem. It will be weighted 10% (100 points).
+Software Requirements
+
+The following requirements have been adopted from Dr. Sugihara
+Programming Language
+
+All software must be written in Java. Other programming languages may not be used except where specified by the assignment.
+
+The software must be compilable on the default version of Java available on uhunix.hawaii.edu at the time of the submission deadline. Uhunix is running Solaris. Presently the Java version is
+
+java version 1.5.0_14
+Java(TM) 2 Runtime Environment, Standard Edition (build 1.5.0_14-b03)
+Java HotSpot(TM) Server VM (build 1.5.0_14-b03, mixed mode)
+
+Program Type and Interface
+
+The software should run as a Java application.
+
+    Command line (console) applications are acceptable unless specified otherwise.
+    GUI (graphical user interface versions) are also permissible, and may be given extra credit if well designed. (The TA will alert the instructor to particularly well designed GUIs; the instructor may award up to 10 points at his discretion.).
+
+Source Code Requirements
+
+The student shall submit .java source files (not class files or executables), organized in folders as required for your package structure, along with instructions for compiling the program and other documentation discussed in the next section.
+
+    The Teaching Assistant will verify that the programs compile on the current version of Java on uhunix, as specified above.
+    Submissions will only be evaluated for credit if they successfully compile.
+    This procedure is intended to (1) enable us to verify that the software is based on the student's own source code and (2) disallow ambiguities such as it worked on my machine at home.
+
+Source files should include the BSD License Header based on this template, with year, copyright holder and organization replaced appropriately. Other open source licenses (e.g., Apache or GNU) may be used with prior permission from the instructor if the student has a specific reason for doing so.
+
+Source should include appropriate in-line comments documenting the software design. Comments should not document the obvious (e.g., this line adds 1 to the index variable), but rather document functional intent and constraints such as loop invariants, explain something that would otherwise be obscure, mark places that need improvement, etc. Descriptive use of variable and method names also constitutes internal documentation. See next section for external documentation requirements.
+Including Open Source Software
+
+Each assignment will specify where you are allowed to reuse source code of open source software developed by other authors, and where you must write your own code for the assignment. Where allowed by the assignment, reuse of open source code is allowed if the following conditions are also met
+
+    The software license of the reused open source code is compatible with the BSD license.
+    The license header of reused source code is also inserted into the source files containing the reused source code.
+    The Readme.txt of your product clearly gives credit to the authors of the reused source code (i.e., including information such as the name of an author, the name of a reused product and a list of file names of the reused source code).
+
+When source code of a module is reused, add the name(s) of its original author(s) to an @author tag at the beginning of the reused module. If you modified the source code for more than bug fixes, add your name as an author of a derivative from the original source code
+
+    
+     
+      @author     Original Author     James Brown
+      @author     Derivative Author   Robert Smith
+     
+     
+
+Documentation Requirements
+
+Software will be submitted with appropriate documentation, including the following. (Think of your audience for this documentation as any potential users, including your classmates as well as the TA and instructor.)
+
+Readme.txt (plaintext file)
+    Critical information that a user should know about your product first, including
+
+        step-wise instructions for the user to reconstruct an application from your source code (including the version of JDK used),
+        credits (acknowledgments to authors of open source reused at least in part for this product) including information such as the name of an author, the name of a reused product and a list of source file names of the reused product,
+        revision history (a log of changes on the product),
+        bug report (description of known bugs), and
+        a listing of other documentation available (below).
+
+Operation Manual (plaintext or PDF)
+    Concise, yet sufficient step-wise explanation about how to start and interact with the program, written for an end user who is concerned with using the program in an application domain (not with the code).
+Reference Manuals (plaintext or PDF, and Javadoc HTML)
+    Requirements and design specifications; organization of modules; algorithms and data structures used; functionality of each class or method; etc. A reference manual is written for experienced users andor programmers who perform various maintenance activities for correction, enhancement, adaptation, etc. Javadoc pages may also be included, and should be included if you intend to have others use your code.
+Testing Document (plaintext or PDF)
+    Test plan describing objective(s) of testing, method(s) used for testing, assumption(s) of testing, and hardwaresoftware environment in testing; test case specification describing classification of test cases; test data and IO of test runs; and whatever else is useful to convince other people about the correctness and good features of your program. For ICS 311 assignments the testing document will include your conclusions related to the purpose of the assignment. 
+
+Submission Requirements
+
+    Place the files and folders required (as discussed above under Software and Documentation Requirements) in a folder titled using the scheme Last-First-A#, for example, Suthers-Dan-A1 for assignment 1, Suthers-Dan-A2 for assignment 2, etc. Extra credit projects should be submitted with extentions -E1, etc.
+    Zip (.zip) or gzip (.gz) this folder using commands by those names on uhunix, or appropriate equivalents on your platform.
+    It is suggested that you test unzipping, compiling and running the software per the instructions you gave before submitting the assignment.
+    Upload the zip file to the Laulima area for the given assignment.
+    You should receive email confirmation of your submission at the address registered in Laulima.
+    Unlimited resubmissions are allowed up to the assignment deadline. Extra credit for early submission, if any, will be based on the date of the last submission, not the first!
+
+Evaluation Criteria for Implementation Assignments
+
+These are our default grading criteria. Some adjustments may be made when we see where the greatest effort is required.
+
+Program 60%
+
+        50% if all operations and all ADTs are implemented.
+        5% for following instructions for input and output (although many more points will be deducted if the interface is so bad we can't verify that the operations and ADTs are implemented).
+        5% for adequate error handling.
+
+Analysis and Documentation 40%
+
+        30% for adequate analysis of the results
+        10% for Readme, Operation, Reference manuals
+
+Use of Software by Other Students
+
+If others elect to use your software in a subsequent assignment (e.g., using your graph ADT implementation in the third assignment), we will give extra credit for this. Both parties should notify the instructor.
+Extra Credit Projects
+
+This section discusses extra credit obtained by projects. See earlier in the Syllabus for discussion of extra credit by early submission of assignments, creation of a quality GUI, and having others use your software in subsequent assignments.
+Overview
+
+You may earn extra credit by electing to do an additional assignment from those announced, or ask for one on a special topic of interest to you. This assignment may be like an implementation assignment, or it may involve design and technical analysis of an algorithm based on proofs rather than implementation. Points earned depend on the project scope and execution.
+Purpose
+
+Extra Credit projects are offered for two reasons to enable students to explore areas of interest other than what the instructor has chosen to emphasize, and to enable those who feel their performance on other items does not reflect their capability and want to improve their grade. For example, if you are bad at taking tests but good at programming you can take on an interesting programming problem and report on it. If you are a weak programmer but a good mathematical thinker you can earn extra credit by proving properties of some algorithm. (If you are weak on both programming and mathematical thinking, perhaps you should rethink your major!)
+Submission
+
+Extra credit implementation assignments will have specified due dates. If you want to negotiate another kind of extra credit project, agreement must be reached before the Thanksgiving break. These projects must be presented in class by the final day of class and are due at the time of the final exam.
+Points
+
+Following the scheme for Implementation assignments, the number of points depends on how ambitious the project is. A well executed small problem would earn 20 points, a medium one 50 points, and an ambitious one 100 points. We will negotiate this in advance.
+Implementation Extra Credit
+
+The instructor will provide other algorithm design, analysis and implementation problems. You may also make other proposals. The content and submission requirements are identical to those for Implementation Assignments, above.
+Design and Analysis Extra Credit
+
+A design and analysis project will pose a computational problem, design or identify existing algorithms for its solution, prove (or disprove) correctness of the algorithm(s), analyze the time and space run-time properties of the algorithm(s), and draw conclusions about the suitability of the proposed solution(s). It will be written up as a technical report in ACM or IEEE format such as might be required for submission to a conference.
+Dan Suthers
+Last modified Mon Oct 7 031435 HST 2013 
