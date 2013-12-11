@@ -104,6 +104,7 @@ public class DirectedGraphDriver {
 			}
 			System.out.println("Percent Vertices in Largest Strongly Connected Component: " + PercentVertices() + "%");
 		}
+		System.out.println("Reciprocity: " + Reciprocity());
 	}
 	
 	/**
@@ -389,9 +390,44 @@ public class DirectedGraphDriver {
 		return(orderedSCC);
 	}
 	
+	/**
+	 * TODO
+	 * 
+	 * @return
+	 */
 	private static double PercentVertices(){
 		double percentVertices  = ((double)largestSCCVertices/(double)digraph.numVertices()) * 100;
 		return(percentVertices);
+	}
+	
+	/**
+	 * "If I friend someone, do they friend me back?"
+	 * 
+	 * Computes the percentage of directed edges (u,v) for which there is a reciprocated edge (v,u).
+	 * Returns the fraction of edges that are reciprocated.
+	 * 
+	 * Formula:  # of reciprocated edges / total edges
+	 * 
+	 * @return
+	 */
+	private static double Reciprocity(){
+		double reciprocated = 0;
+		Iterator<Arc<String>> arcIter = digraph.arcs();
+		
+		while(arcIter.hasNext()){
+			Arc<String> arc = arcIter.next();
+			String sourceKey = arc.getSource().getKey();
+			String targetKey = arc.getTarget().getKey();
+			
+			//if the reciprocal arc exists, increment the counter
+			if(digraph
+					.getArc(targetKey, sourceKey) 
+					!= null){
+				reciprocated++;
+			}
+		}
+		
+		return(reciprocated/digraph.numArcs());
 	}
 		
 }

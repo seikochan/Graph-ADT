@@ -143,7 +143,16 @@ public class DirectedGraph<E extends Comparable<E>> {
 	 */
 	@SuppressWarnings("unchecked")
 	public Arc<E> getArc(E source, E target){
-		return (Arc<E>) (outAdjTree.get(source).search(target).getData());
+		TreeNode<E> node = outAdjTree.get(source).search(target);
+		
+		//arc does not exist, return null
+		if(node == null){
+			return null;
+		}
+		
+		//arc exists so return it
+		Arc<E> arc = (Arc<E>) node.getData();
+		return(arc);
 	}
 	
 	/**
