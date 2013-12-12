@@ -31,6 +31,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Hashtable;
@@ -106,6 +107,7 @@ public class GraphDriver {
 		}
 		System.out.println("Reciprocity: " + Reciprocity());
 		System.out.println("Degree Correlation: " + DegreeCorrelation());
+		System.out.println("Clustering Coefficient: " + ClusteringCoefficient());
 	}
 	
 	/**
@@ -466,5 +468,86 @@ public class GraphDriver {
 		
 		double formula = ( ( (S1*Se) - Math.pow(S2, 2) ) / ( (S1 * S3) - Math.pow(S2, 2) ) );
 		return formula;
+	}
+	
+	/**
+	 * "Are my friends friends with each other?
+	 * 
+	 * AKA: Triadic Closure; Transitivity
+	 * Computes the percentage of triads (3 vertices) for which there exists edges (u,v) and (u,w)(the denominator)
+	 * for which there also exists edge (v,w)(the numerator).
+	 * Fraction of paths of length 2 in the network that are closed.
+	 * 
+	 * Formula:
+	 * 			Ci = (# of pairs of neighbors of i that are connected) / (# of pairs of neighbors of i)
+	 * @return
+	 */
+	private static double ClusteringCoefficient(){
+		double totalNumPairNeighbor = 0;
+		double connectedNumPairNeighbor = 0;
+		
+		//check all vertices
+		Iterator<Vertex<String>> vertexIter = digraph.vertices();
+		while(vertexIter.hasNext()){
+			Vertex<String> vertex = vertexIter.next();
+			System.out.println("Vertex: " + vertex.toString());
+			
+			//for each vertex check all incident edges
+			Iterator<Arc<String>> OutArcIter = digraph.outIncidentArcs(vertex);
+			ArrayList<Arc<String>> arcArr = new ArrayList<Arc<String>>();
+			int inOutIndex = -1;
+			System.out.print("ArcArray: ");
+			while(OutArcIter.hasNext()){
+				Arc<String> arc = OutArcIter.next();
+				arcArr.add(arc);
+				System.out.print(arc.toString() + ", ");
+			}
+			inOutIndex = arcArr.size();
+			System.out.println("\ninOutIndex: " + inOutIndex);
+			Iterator<Arc<String>> InArcIter = digraph.inIncidentArcs(vertex);
+			while(InArcIter.hasNext()){
+				Arc<String> arc =InArcIter.next();
+				arcArr.add(arc);
+				System.out.print(arc.toString() + ", ");
+			}
+			System.out.println();
+			
+			//for each arc, find all pairs 
+			for(int i = 0; i < arcArr.size(); i++){
+				System.out.println("\tMain arc: " + arcArr.get(i).toString());
+				for(int j = i+1; j < arcArr.size(); j++){
+					System.out.println("\t\tSide arc: " + arcArr.get(j).toString());
+					totalNumPairNeighbor++;
+					
+					//for each pair of arcs, see if they are connected, meaning check if the last edge of the triagle exists
+					//check if inIncidentArc or outIncidentArc
+					//case where both arcs are u -> v
+					if( (i < inOutIndex) && (j < inOutIndex) ){
+						if( (digraph.getArc(arcArr.get(i).getTarget().getKey(), arcArr.get(j).getTarget().getKey()) != null) || (digraph.getArc(arcArr.get(j).getTarget().getKey(), arcArr.get(i).getTarget().getKey()) != null) ){
+							connectedNumPairNeighbor++;
+							System.out.println("Added :D");
+						}
+					//case where i: u -> v,  j: v -> u
+					}else if( (i < inOutIndex) && (j >= inOutIndex) ){
+						if( (digraph.getArc(arcArr.get(i).getTarget().getKey(), arcArr.get(j).getTarget().getKey()) != null) || (digraph.getArc(arcArr.get(j).getSource().getKey(), arcArr.get(i).getSource().getKey()) != null) ){
+							connectedNumPairNeighbor++;
+							System.out.println("Added :D");
+						}
+					//case where i: v -> u, therefore same for j: v -> u
+					}else if( (i >= inOutIndex) && (j >= inOutIndex) ){
+						if( (digraph.getArc(arcArr.get(i).getSource().getKey(), arcArr.get(j).getSource().getKey()) != null) || (digraph.getArc(arcArr.get(j).getSource().getKey(), arcArr.get(i).getSource().getKey()) != null) ){
+							connectedNumPairNeighbor++;
+							System.out.println("Added :D");
+						}
+					//THIS SHOULD NOT OCCUR
+					}else{
+						System.out.println("ERROR: Error in ClusteringCoefficient().");
+						System.exit(0);
+					}
+					
+				}
+			}
+		}
+		return( connectedNumPairNeighbor/totalNumPairNeighbor );
 	}
 }
