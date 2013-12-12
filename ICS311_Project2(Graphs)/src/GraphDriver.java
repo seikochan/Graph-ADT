@@ -54,8 +54,8 @@ import java.util.LinkedList;
  * 
  * @author Jasmine Ishigami
  */
-public class DirectedGraphDriver {
-	static DirectedGraph<String> digraph;
+public class GraphDriver {
+	static Graph<String> digraph;
 	private static String nodeHeader = "";
 	private static String arcHeader = "";
 	private static String inDegreeStats = "";
@@ -71,7 +71,7 @@ public class DirectedGraphDriver {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		digraph = new DirectedGraph<String>();
+		digraph = new Graph<String>();
 		parseData(args[0]);
 		
 		System.out.println("------------------------------------------------------------");
@@ -105,6 +105,7 @@ public class DirectedGraphDriver {
 			System.out.println("Percent Vertices in Largest Strongly Connected Component: " + PercentVertices() + "%");
 		}
 		System.out.println("Reciprocity: " + Reciprocity());
+		System.out.println("Degree Correlation: ");
 	}
 	
 	/**
@@ -420,14 +421,43 @@ public class DirectedGraphDriver {
 			String targetKey = arc.getTarget().getKey();
 			
 			//if the reciprocal arc exists, increment the counter
-			if(digraph
-					.getArc(targetKey, sourceKey) 
-					!= null){
+			if(digraph.getArc(targetKey, sourceKey) != null){
 				reciprocated++;
 			}
-		}
-		
+		}		
 		return(reciprocated/digraph.numArcs());
 	}
+	
+	/**
+	 * "Do people friend those of similar popularity?"
+	 * 
+	 * AKA:  Assortative Mixing (describes the level to which things of different types mix with each other.
+	 * Homophily:  high degree of correlation; "love of same"
+	 * Computes the correlation between degree(u) and degree(v) over all pairs for which there exists edge(u,v).
+	 * Usually done one undirected graphs but can be done on directed graphs if take into account both indegree and outdegree.
+	 * 
+	 * Formula: (S1*Se - S2^2) / (S1*S3 - S2^2)
+	 * 			where -
+	 * 					S1 = SUM(degree)	, over all vertices
+	 * 					S2 = SUM(degree^2)	, over all vertices
+	 * 					S3 = SUM(degree^3)	, over all vertices
+	 * 					Se = 2 [ SUM(degree(u) * degree(v)) ] 	, over all edges
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	private static double DegreeCorrelation(){
+		double S1 = 0;
+		double S2 = 0;
+		double S3 = 0;
+		double Se = 0;
 		
+		Iterator<Vertex<String>> vertexIter = digraph.vertices();
+		while(vertexIter.hasNext()){
+			Vertex<String> vertex = (Vertex<String>) vertexIter.next();
+			S1 = S1 + vertex.getInDegree() + vertex.getOutDegree();
+			S2 = S2 + Math.pow(vertex.getInDegree(), 2) + Math.pow(vertex.getOutDegree(), 2);
+			S3 = S3 + Math.pow(vertex.getInDegree(), 3) + Math.pow(vertex.getOutDegree(), 3);
+		}
+		return 9;
+	}
 }

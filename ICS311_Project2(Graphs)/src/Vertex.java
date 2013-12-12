@@ -42,8 +42,8 @@ import java.util.HashMap;
 public class Vertex<E> {
 	private E key;
 	private Object data;
-	private long inDegree;
-	private long outDegree;
+	private int inDegree;
+	private int outDegree;
 	private HashMap<E,Object> annotations;
 	
 	/**
@@ -133,7 +133,7 @@ public class Vertex<E> {
 	 * 
 	 * @return
 	 */
-	public long getInDegree(){
+	public int getInDegree(){
 		return(inDegree);
 	}
 	
@@ -142,7 +142,7 @@ public class Vertex<E> {
 	 * 
 	 * @return
 	 */
-	public long getOutDegree(){
+	public int getOutDegree(){
 		return(outDegree);
 	}
 	

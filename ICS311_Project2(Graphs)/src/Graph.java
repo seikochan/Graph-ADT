@@ -25,7 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.ArrayList;
 import java.util.EmptyStackException;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
@@ -44,11 +46,13 @@ import java.util.Stack;
  * @param <E>
  *
  */
-public class DirectedGraph<E extends Comparable<E>> {
+public class Graph<E extends Comparable<E>> {
 	//number of vertices in the graph
 	private int numVertices;
 	//number of arcs in the graph
 	private int numArcs;
+	//shows all undirected edges in graph
+	private Hashtable<String, Arc<E>> edges;
 	//represents an AdjacencyTree of what arcs are outgoing from each vertex
 	//        vertex.key
 	//			|  | ------>  BST (where root node is vertex, and all other children are arcs)
@@ -75,13 +79,18 @@ public class DirectedGraph<E extends Comparable<E>> {
 	public Hashtable<E, BinarySearchTree<E>> inAdjTree;
 	
 	//-------------------------------CONSTRUCTOR(S)------------------------------------
-	public DirectedGraph(){
+	public Graph(){
 		numVertices = 0;
 		numArcs = 0;
+		edges = new Hashtable<String, Arc<E>>();
 		outAdjTree = new Hashtable<E, BinarySearchTree<E>>();
 		inAdjTree = new Hashtable<E, BinarySearchTree<E>>();
 	}
 	
+	//=================================================================================================
+	//=											DIRECTED METHODS									  =
+	//=================================================================================================	
+
 	
 	//---------------------------------ACCESSORS----------------------------------------
 	
@@ -181,7 +190,7 @@ public class DirectedGraph<E extends Comparable<E>> {
 	 * @param v
 	 * @return
 	 */
-	public long inDegree(Vertex<E> v){
+	public int inDegree(Vertex<E> v){
 		return(v.getInDegree());
 	}
 	
@@ -191,7 +200,7 @@ public class DirectedGraph<E extends Comparable<E>> {
 	 * @param v
 	 * @return
 	 */
-	public long outDegree(Vertex<E> v){
+	public int outDegree(Vertex<E> v){
 		return(v.getOutDegree());
 	}
 	
@@ -345,6 +354,11 @@ public class DirectedGraph<E extends Comparable<E>> {
 		//update inDegree and outDegree of source and target vertices
 		v.addInDegree();
 		u.addOutDegree();
+		
+		//update edges list, as in the undirected edges of the graph
+		if( !edges.contains(u.getKey().toString() + v.getKey().toString()) &&  !edges.contains(v.getKey().toString() + u.getKey().toString()) ){
+			edges.put(u.getKey().toString() + v.getKey().toString(), arc);
+		}
 		
 		return(arc);
 	}
@@ -896,6 +910,155 @@ public class DirectedGraph<E extends Comparable<E>> {
 		@Override
 		public void remove() {
 			System.out.println("Remove of OutVertexIterator not yet implemented");	
+		}	
+	}
+	
+	
+	
+	//=================================================================================================
+	//=									      UNDIRECTED METHODS									  =
+	//=================================================================================================
+
+	public Iterator<Arc<E>> edges(){
+		return new EdgeIterator();
+	}
+	
+	public int numEdges(){
+		return(edges.size());
+	}
+	
+	public int degree(Vertex<E> vertex){
+		return(vertex.getInDegree() + vertex.getOutDegree());
+	}
+	
+	public Iterator<Vertex<E>> adjacentVertices(Vertex<E> vertex){
+		return vertices();
+		//TODO
+	}
+	
+	public Iterator<Arc<E>> incidentEdges(Vertex<E> vertex){
+		return new adjacentEdgeIterator(vertex);
+	}
+	
+	public ArrayList<Vertex<E>> endVertices(Arc<E> a){
+		ArrayList<Vertex<E>> arr = new ArrayList<Vertex<E>>();
+		arr.add(a.getSource());
+		arr.add(a.getTarget());
+		
+		return(arr);
+	}
+	
+	public Vertex<E> opposite(Vertex<E> vertex, Arc<E> arc) throws Exception{
+		if(arc.getSource() == vertex){
+			return(arc.getTarget());
+		}else if(arc.getTarget() == vertex){
+			return(arc.getSource());
+		}else{
+			throw new Exception("InvalidEdgeException");
+		}
+	}
+	
+	public Iterator<Arc<E>> undirectedEdges(){
+		return arcs();
+		//TODO
+	}
+	
+	public boolean isDirected(Arc<E> a){
+		return false;
+		//TODO
+	}
+	
+	private class EdgeIterator implements Iterator<Arc<E>>{
+		private Arc<E> last;
+		private Stack<Arc<E>> stack;
+		
+		private EdgeIterator(){
+			last = null;
+			stack = new Stack<Arc<E>>();
+			
+			for(Map.Entry<String, Arc<E>> entry: edges.entrySet()){
+				stack.push(entry.getValue());
+			}
+		}
+		
+		@Override
+		public boolean hasNext() {
+			try{
+				if(stack.peek()!=null){
+					return(true);
+				}
+				return(false);
+			  }
+			  catch(EmptyStackException e){
+				  return(false);
+			  }
+		}
+
+		@Override
+		public Arc<E> next() {
+			try{
+				last = stack.pop();
+				return(last);
+			}
+			catch(EmptyStackException e){
+				last = null;
+				throw new NoSuchElementException();
+			}
+		}
+
+		@Override
+		public void remove() {
+			System.out.println("Remove of EdgeIterator not yet implemented");	
+		}	
+	}
+	
+	private class adjacentEdgeIterator implements Iterator<Arc<E>>{
+		private Arc<E> last;
+		private Stack<Arc<E>> stack;
+		
+		private adjacentEdgeIterator(Vertex<E> vertex){
+			last = null;
+			stack = new Stack<Arc<E>>();
+			
+			Iterator<Arc<E>> inArcIter = inIncidentArcs(vertex);
+			while (inArcIter.hasNext()){
+				stack.push( (Arc<E>) inArcIter.next());
+			}
+			
+			Iterator<Arc<E>> outArcIter = outIncidentArcs(vertex);
+			while (outArcIter.hasNext()){
+				stack.push( (Arc<E>) outArcIter.next());
+			}
+		}
+		
+		@Override
+		public boolean hasNext() {
+			try{
+				if(stack.peek()!=null){
+					return(true);
+				}
+				return(false);
+			  }
+			  catch(EmptyStackException e){
+				  return(false);
+			  }
+		}
+
+		@Override
+		public Arc<E> next() {
+			try{
+				last = stack.pop();
+				return(last);
+			}
+			catch(EmptyStackException e){
+				last = null;
+				throw new NoSuchElementException();
+			}
+		}
+
+		@Override
+		public void remove() {
+			System.out.println("Remove of EdgeIterator not yet implemented");	
 		}	
 	}
 }
