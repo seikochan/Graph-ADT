@@ -105,7 +105,7 @@ public class GraphDriver {
 			System.out.println("Percent Vertices in Largest Strongly Connected Component: " + PercentVertices() + "%");
 		}
 		System.out.println("Reciprocity: " + Reciprocity());
-		System.out.println("Degree Correlation: ");
+		System.out.println("Degree Correlation: " + DegreeCorrelation());
 	}
 	
 	/**
@@ -444,7 +444,6 @@ public class GraphDriver {
 	 * 					Se = 2 [ SUM(degree(u) * degree(v)) ] 	, over all edges
 	 * @return
 	 */
-	@SuppressWarnings("unchecked")
 	private static double DegreeCorrelation(){
 		double S1 = 0;
 		double S2 = 0;
@@ -458,6 +457,14 @@ public class GraphDriver {
 			S2 = S2 + Math.pow(vertex.getInDegree(), 2) + Math.pow(vertex.getOutDegree(), 2);
 			S3 = S3 + Math.pow(vertex.getInDegree(), 3) + Math.pow(vertex.getOutDegree(), 3);
 		}
-		return 9;
+		
+		Iterator<Arc<String>> edgeIterator = digraph.edges();
+		while(edgeIterator.hasNext()){
+			Arc<String> edge = edgeIterator.next();
+			Se = Se + edge.getSource().getInDegree() + edge.getSource().getOutDegree() + edge.getTarget().getInDegree() + edge.getTarget().getOutDegree();
+		}
+		
+		double formula = ( ( (S1*Se) - Math.pow(S2, 2) ) / ( (S1 * S3) - Math.pow(S2, 2) ) );
+		return formula;
 	}
 }
