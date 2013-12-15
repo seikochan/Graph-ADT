@@ -51,8 +51,8 @@ public class Graph<E extends Comparable<E>> {
 	private int numVertices;
 	//number of arcs in the graph
 	private int numArcs;
-	//shows all undirected edges in graph
-	private Hashtable<String, Arc<E>> edges;
+	//number of edges in the graph
+	public int numEdges;
 	//represents an AdjacencyTree of what arcs are outgoing from each vertex
 	//        vertex.key
 	//			|  | ------>  BST (where root node is vertex, and all other children are arcs)
@@ -77,14 +77,23 @@ public class Graph<E extends Comparable<E>> {
 	//			|  |
 	// * key of items in BST is referenced by target key of arc.
 	public Hashtable<E, BinarySearchTree<E>> inAdjTree;
+	//shows all undirected edges in graph
+	public Hashtable <String,Arc<E>> edges;
+	//represents an AdjacencyTree of incident edges on each vertex
+	//need to keep a separate hashtable since it needs to disregard u -> v and v-> u and just make 1 edge (u,v)
+	private Hashtable<E, BinarySearchTree<E>> edgeAdjTree;
+	//true only when reverseDirection is called
+	private boolean reversing;
 	
 	//-------------------------------CONSTRUCTOR(S)------------------------------------
 	public Graph(){
 		numVertices = 0;
 		numArcs = 0;
-		edges = new Hashtable<String, Arc<E>>();
+		edges = new Hashtable<String,Arc<E>>();
 		outAdjTree = new Hashtable<E, BinarySearchTree<E>>();
 		inAdjTree = new Hashtable<E, BinarySearchTree<E>>();
+		edgeAdjTree = new Hashtable<E, BinarySearchTree<E>>();
+		reversing = false;
 	}
 	
 	//=================================================================================================
@@ -355,11 +364,39 @@ public class Graph<E extends Comparable<E>> {
 		v.addInDegree();
 		u.addOutDegree();
 		
-		//update edges list, as in the undirected edges of the graph
-		if( !edges.contains(u.getKey().toString() + v.getKey().toString()) &&  !edges.contains(v.getKey().toString() + u.getKey().toString()) ){
-			edges.put(u.getKey().toString() + v.getKey().toString(), arc);
+		if(!reversing){
+			//update edges list, as in the undirected edges of the graph
+			Arc<E> reverseArc = new Arc<E>(v,u);
+			System.out.println("contains Arc " + arc.toString() + ": " + edges.contains(arc));
+			System.out.println("contains reverseArc " + reverseArc.toString() + ": " + edges.contains(reverseArc));
+			 if( (!edges.contains(arc)) && (!edges.contains(reverseArc)) ){
+				 System.out.println("Edge Added: " + arc.toString());
+                 edges.put(u.getKey().toString() + v.getKey().toString(), arc);
+                 numEdges++;
+                 
+				//since adding new edge, update the edgeAdjTree to match
+				//add edge to source vertex
+				if(edgeAdjTree.get(v.getKey()) == null){
+					//System.out.println("\tAdded under: " + v.getKey());
+					BinarySearchTree<E> bst = new BinarySearchTree<E>();
+					bst.insert(u.getKey(),arc);
+					edgeAdjTree.put(v.getKey(), bst);
+				}else{
+					//System.out.println("\tAdded under: " + v.getKey());
+					edgeAdjTree.get(v.getKey()).insert(u.getKey(), arc);
+				}
+				//add edge to target vertex
+				if(edgeAdjTree.get(u.getKey()) == null){
+					//System.out.println("\tAdded under: " + u.getKey());
+					BinarySearchTree<E> bst = new BinarySearchTree<E>();
+					bst.insert(v.getKey(),arc);
+					edgeAdjTree.put(u.getKey(), bst);
+				}else{
+					//System.out.println("\tAdded under: " + u.getKey());
+					edgeAdjTree.get(u.getKey()).insert(v.getKey(), arc);
+				}
+			}
 		}
-		
 		return(arc);
 	}
 	
@@ -447,6 +484,8 @@ public class Graph<E extends Comparable<E>> {
 	 * @param a
 	 */
 	public void reverseDirection(Arc<E> a){
+		reversing = true;
+		
 		//modify inAdjTree and outAdjTree get rid of old arc
 		removeArc(a);
 		//System.out.println("Removed from outAdjTree: " + outAdjTree.get(a.getSource().getKey()).search(a.getTarget().getKey()));
@@ -459,6 +498,8 @@ public class Graph<E extends Comparable<E>> {
 		insertArc(a);
 		//System.out.println("Inserted to outAdjTree: " + outAdjTree.get(a.getSource().getKey()).search(a.getTarget().getKey()).getData().toString());
 		//System.out.println("Inserted to inAdjTree: " + inAdjTree.get(a.getTarget().getKey()).search(a.getSource().getKey()).getData().toString() + "\n");
+	
+		reversing = false;
 	}
 	
 	//-------------------------------ANNOTATORS------------------------------------------
@@ -806,6 +847,11 @@ public class Graph<E extends Comparable<E>> {
 			last = null;
 			stack = new Stack<Vertex<E>>();
 			
+			//if vertex has no inIncidentArcs exit
+			if(inAdjTree.get(vertex.getKey()) == null){
+				return;
+			}
+			
 			//create iterator over bst of vertex given
 			Iterator<Object> iter = inAdjTree.get(vertex.getKey()).iterator();
 			while(iter.hasNext()){
@@ -928,7 +974,14 @@ public class Graph<E extends Comparable<E>> {
 	}
 	
 	public int degree(Vertex<E> vertex){
-		return(vertex.getInDegree() + vertex.getOutDegree());
+		//cannot just return inDegree() + outDegree() because if you have u -> v and v -> u  the degree(u) = 2 when it should equal 1 in a undirected graph
+		//if there is no entry (bst) under the vertex key in the edgeAdjTree it means that vertex is isolted
+		if(edgeAdjTree.get(vertex.getKey())==null){
+			return 0;
+		}
+		
+		//else it has some number of degrees
+		return(edgeAdjTree.get(vertex.getKey()).size());
 	}
 	
 	public Iterator<Vertex<E>> adjacentVertices(Vertex<E> vertex){
@@ -977,7 +1030,7 @@ public class Graph<E extends Comparable<E>> {
 			stack = new Stack<Arc<E>>();
 			
 			for(Map.Entry<String, Arc<E>> entry: edges.entrySet()){
-				stack.push(entry.getValue());
+				stack.add(entry.getValue());
 			}
 		}
 		
@@ -1016,18 +1069,19 @@ public class Graph<E extends Comparable<E>> {
 		private Arc<E> last;
 		private Stack<Arc<E>> stack;
 		
+		@SuppressWarnings("unchecked")
 		private adjacentEdgeIterator(Vertex<E> vertex){
 			last = null;
 			stack = new Stack<Arc<E>>();
 			
-			Iterator<Arc<E>> inArcIter = inIncidentArcs(vertex);
-			while (inArcIter.hasNext()){
-				stack.push( (Arc<E>) inArcIter.next());
+			//if vertex has no adjacent edges exit
+			if(edgeAdjTree.get(vertex.getKey()) == null){
+				return;
 			}
-			
-			Iterator<Arc<E>> outArcIter = outIncidentArcs(vertex);
-			while (outArcIter.hasNext()){
-				stack.push( (Arc<E>) outArcIter.next());
+			Iterator<Object> bstIter = edgeAdjTree.get(vertex.getKey()).iterator();
+			while(bstIter.hasNext()){
+				Arc<E> arc = (Arc<E>) bstIter.next();
+				stack.add(arc);
 			}
 		}
 		

@@ -153,4 +153,18 @@ public class Arc<E> {
 		String str = this.source.getKey() + " -> " + this.target.getKey();
 		return(str);
 	}
+	
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public boolean equals(Object obj){
+		if (this == obj)
+	        return true;
+	    if (obj == null)
+	        return false;
+	    if (getClass() != obj.getClass())
+	        return false;
+	    Arc<E> arc = (Arc<E>) obj;
+		return( (arc.getSource() == this.getSource()) && (arc.getTarget() == this.getTarget()) );	
+	}
 }

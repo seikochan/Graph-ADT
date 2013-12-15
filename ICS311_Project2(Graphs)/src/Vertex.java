@@ -185,4 +185,17 @@ public class Vertex<E> {
 	public String toString(){
 		return (String) (this.key);
 	}
+	
+	@SuppressWarnings("unchecked")
+	@Override
+	public boolean equals(Object obj){
+		if (this == obj)
+	        return true;
+	    if (obj == null)
+	        return false;
+	    if (getClass() != obj.getClass())
+	        return false;
+		Vertex<E> vertex = (Vertex<E>) obj;
+		return( (vertex.getKey() == this.getKey()) && (vertex.getData() == this.getData()) );
+	}
 }

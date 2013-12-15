@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -74,12 +75,12 @@ public class GraphDriver {
 	public static void main(String[] args) {
 		digraph = new Graph<String>();
 		parseData(args[0]);
-		
 		System.out.println("------------------------------------------------------------");
 		System.out.println("Graph: " + args[0]);
 		System.out.println("------------------------------------------------------------");
 		System.out.println("|V| = " + digraph.numVertices());
 		System.out.println("|A| = " + digraph.numArcs());
+		System.out.println("|E| = " + digraph.numEdges() + ", " + digraph.numEdges);
 		System.out.printf("Density = %.3f%n",getDensity());
 		DegreeStats();
 		System.out.println("Degree distribution: minimum  average  maximum");
@@ -104,10 +105,13 @@ public class GraphDriver {
 				}
 			}
 			System.out.println("Percent Vertices in Largest Strongly Connected Component: " + PercentVertices() + "%");
+			//undo the transpose
+			Transpose();
 		}
 		System.out.println("Reciprocity: " + Reciprocity());
 		System.out.println("Degree Correlation: " + DegreeCorrelation());
 		System.out.println("Clustering Coefficient: " + ClusteringCoefficient());
+		
 	}
 	
 	/**
@@ -116,7 +120,7 @@ public class GraphDriver {
 	 * @param fileName
 	 */
 	public static void parseData(String fileName){
-		//System.out.println("Entered parseData()");
+		System.out.println("Entered parseData()");
 		final int NODE_DATA = 0;
 		final int TIE_DATA = 1;
 		final int ERROR_DATA = -1;
@@ -337,7 +341,7 @@ public class GraphDriver {
 	 * 
 	 */
 	public static void Transpose(){
-		//System.out.println("--------Entered: Transpose--------");
+		System.out.println("--------Entered: Transpose--------");
 		Iterator<Arc<String>> arcIter = digraph.arcs();
 		while(arcIter.hasNext()){
 			Arc<String> arc = (Arc<String>) arcIter.next();
@@ -454,19 +458,25 @@ public class GraphDriver {
 		
 		Iterator<Vertex<String>> vertexIter = digraph.vertices();
 		while(vertexIter.hasNext()){
+			
 			Vertex<String> vertex = (Vertex<String>) vertexIter.next();
-			S1 = S1 + vertex.getInDegree() + vertex.getOutDegree();
-			S2 = S2 + Math.pow(vertex.getInDegree(), 2) + Math.pow(vertex.getOutDegree(), 2);
-			S3 = S3 + Math.pow(vertex.getInDegree(), 3) + Math.pow(vertex.getOutDegree(), 3);
+			System.out.println("vertex - " + vertex.getKey() + " : " + digraph.degree(vertex));
+			S1 = S1 + digraph.degree(vertex);
+			S2 = S2 + Math.pow(digraph.degree(vertex), 2);
+			S3 = S3 + Math.pow(digraph.degree(vertex), 3);
 		}
 		
 		Iterator<Arc<String>> edgeIterator = digraph.edges();
 		while(edgeIterator.hasNext()){
 			Arc<String> edge = edgeIterator.next();
-			Se = Se + edge.getSource().getInDegree() + edge.getSource().getOutDegree() + edge.getTarget().getInDegree() + edge.getTarget().getOutDegree();
+			Se = Se + (digraph.degree(edge.getSource()) * digraph.degree(edge.getTarget()) );
 		}
 		
-		double formula = ( ( (S1*Se) - Math.pow(S2, 2) ) / ( (S1 * S3) - Math.pow(S2, 2) ) );
+		System.out.println("S1: " + S1);
+		System.out.println("S2: " + S2);
+		System.out.println("S3: " + S3);
+		System.out.println("Se: " + Se);
+		double formula = ( ( (S1*Se*2) - Math.pow(S2, 2) ) / ( (S1 * S3) - Math.pow(S2, 2) ) );
 		return formula;
 	}
 	
@@ -493,51 +503,48 @@ public class GraphDriver {
 			System.out.println("Vertex: " + vertex.toString());
 			
 			//for each vertex check all incident edges
-			Iterator<Arc<String>> OutArcIter = digraph.outIncidentArcs(vertex);
+			Iterator<Arc<String>> edgeIter = digraph.incidentEdges(vertex);
 			ArrayList<Arc<String>> arcArr = new ArrayList<Arc<String>>();
-			int inOutIndex = -1;
-			System.out.print("ArcArray: ");
-			while(OutArcIter.hasNext()){
-				Arc<String> arc = OutArcIter.next();
+			//System.out.print("ArcArray: ");
+			while(edgeIter.hasNext()){
+				Arc<String> arc = edgeIter.next();
 				arcArr.add(arc);
-				System.out.print(arc.toString() + ", ");
+				//System.out.print(arc.toString() + ", ");
 			}
-			inOutIndex = arcArr.size();
-			System.out.println("\ninOutIndex: " + inOutIndex);
-			Iterator<Arc<String>> InArcIter = digraph.inIncidentArcs(vertex);
-			while(InArcIter.hasNext()){
-				Arc<String> arc =InArcIter.next();
-				arcArr.add(arc);
-				System.out.print(arc.toString() + ", ");
-			}
-			System.out.println();
+			//System.out.println();
 			
 			//for each arc, find all pairs 
 			for(int i = 0; i < arcArr.size(); i++){
-				System.out.println("\tMain arc: " + arcArr.get(i).toString());
+				//System.out.println("\tMain arc: " + arcArr.get(i).toString());
 				for(int j = i+1; j < arcArr.size(); j++){
-					System.out.println("\t\tSide arc: " + arcArr.get(j).toString());
+					//System.out.println("\t\tSide arc: " + arcArr.get(j).toString());
 					totalNumPairNeighbor++;
 					
 					//for each pair of arcs, see if they are connected, meaning check if the last edge of the triagle exists
-					//check if inIncidentArc or outIncidentArc
 					//case where both arcs are u -> v
-					if( (i < inOutIndex) && (j < inOutIndex) ){
+					//TODO make a getArc() method to use edgeAdjTree
+					if( (arcArr.get(i).getSource() == vertex) && (arcArr.get(j).getSource() == vertex) ){
 						if( (digraph.getArc(arcArr.get(i).getTarget().getKey(), arcArr.get(j).getTarget().getKey()) != null) || (digraph.getArc(arcArr.get(j).getTarget().getKey(), arcArr.get(i).getTarget().getKey()) != null) ){
 							connectedNumPairNeighbor++;
-							System.out.println("Added :D");
+							//System.out.println("Added :D");
 						}
 					//case where i: u -> v,  j: v -> u
-					}else if( (i < inOutIndex) && (j >= inOutIndex) ){
+					}else if( (arcArr.get(i).getSource() == vertex) && (arcArr.get(j).getTarget() == vertex) ){
 						if( (digraph.getArc(arcArr.get(i).getTarget().getKey(), arcArr.get(j).getTarget().getKey()) != null) || (digraph.getArc(arcArr.get(j).getSource().getKey(), arcArr.get(i).getSource().getKey()) != null) ){
 							connectedNumPairNeighbor++;
-							System.out.println("Added :D");
+							//System.out.println("Added :D");
+						}
+					//case where i: v -> u, therefore same for j: u -> v
+					}else if( (arcArr.get(i).getTarget() == vertex) && (arcArr.get(j).getSource() == vertex) ){
+						if( (digraph.getArc(arcArr.get(i).getSource().getKey(), arcArr.get(j).getSource().getKey()) != null) || (digraph.getArc(arcArr.get(j).getTarget().getKey(), arcArr.get(i).getTarget().getKey()) != null) ){
+							connectedNumPairNeighbor++;
+							//System.out.println("Added :D");
 						}
 					//case where i: v -> u, therefore same for j: v -> u
-					}else if( (i >= inOutIndex) && (j >= inOutIndex) ){
+					}else if( (arcArr.get(i).getTarget() == vertex) && (arcArr.get(j).getTarget() == vertex) ){
 						if( (digraph.getArc(arcArr.get(i).getSource().getKey(), arcArr.get(j).getSource().getKey()) != null) || (digraph.getArc(arcArr.get(j).getSource().getKey(), arcArr.get(i).getSource().getKey()) != null) ){
 							connectedNumPairNeighbor++;
-							System.out.println("Added :D");
+							//System.out.println("Added :D");
 						}
 					//THIS SHOULD NOT OCCUR
 					}else{
