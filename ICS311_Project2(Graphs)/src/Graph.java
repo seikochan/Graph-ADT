@@ -988,7 +988,17 @@ public class Graph<E extends Comparable<E>> {
 	
 	public Iterator<Vertex<E>> adjacentVertices(Vertex<E> vertex){
 		return vertices();
-		//TODO
+	}
+	
+	public ArrayList<Vertex<E>> adjacentVertexArr(Vertex<E>  vertex){
+		ArrayList<Vertex<E>> arr = new ArrayList<Vertex<E>>();
+		
+		Iterator<Vertex<E>> vertexIter = adjacentVertices(vertex);
+		while(vertexIter.hasNext()){
+			arr.add(vertexIter.next());
+		}
+		
+		return(arr);
 	}
 	
 	public Iterator<Arc<E>> incidentEdges(Vertex<E> vertex){

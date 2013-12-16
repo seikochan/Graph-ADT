@@ -435,6 +435,9 @@ public class GraphDriver {
 				reciprocated++;
 			}
 		}		
+		System.out.println("ADSG");
+		System.out.println(reciprocated);
+		System.out.println(digraph.numArcs());
 		return(reciprocated/digraph.numArcs());
 	}
 	
@@ -500,70 +503,28 @@ public class GraphDriver {
 	 * @return
 	 */
 	private static double ClusteringCoefficient(){
-		double totalNumPairNeighbor = 0;
-		double connectedNumPairNeighbor = 0;
+		double connectedTriangles = 0;
+		double totalTriangles = 0;
 		
-		//check all vertices
-		Iterator<Vertex<String>> vertexIter = digraph.vertices();
-		while(vertexIter.hasNext()){
-			Vertex<String> vertex = vertexIter.next();
-			System.out.println("Vertex: " + vertex.toString());
-			
-			//for each vertex check all incident edges
-			Iterator<Arc<String>> edgeIter = digraph.incidentEdges(vertex);
-			ArrayList<Arc<String>> arcArr = new ArrayList<Arc<String>>();
-			//System.out.print("ArcArray: ");
-			while(edgeIter.hasNext()){
-				Arc<String> arc = edgeIter.next();
-				arcArr.add(arc);
-				//System.out.print(arc.toString() + ", ");
-			}
-			//System.out.println();
-			
-			//for each arc, find all pairs 
-			for(int i = 0; i < arcArr.size(); i++){
-				//System.out.println("\tMain arc: " + arcArr.get(i).toString());
-				for(int j = i+1; j < arcArr.size(); j++){
-					//System.out.println("\t\tSide arc: " + arcArr.get(j).toString());
-					totalNumPairNeighbor++;
-					
-					//for each pair of arcs, see if they are connected, meaning check if the last edge of the triagle exists
-					//case where both arcs are u -> v
-					//TODO make a getArc() method to use edgeAdjTree
-					if( (arcArr.get(i).getSource() == vertex) && (arcArr.get(j).getSource() == vertex) ){
-						if( (digraph.getArc(arcArr.get(i).getTarget().getKey(), arcArr.get(j).getTarget().getKey()) != null) || (digraph.getArc(arcArr.get(j).getTarget().getKey(), arcArr.get(i).getTarget().getKey()) != null) ){
-							connectedNumPairNeighbor++;
-							//System.out.println("Added :D");
-						}
-					//case where i: u -> v,  j: v -> u
-					}else if( (arcArr.get(i).getSource() == vertex) && (arcArr.get(j).getTarget() == vertex) ){
-						if( (digraph.getArc(arcArr.get(i).getTarget().getKey(), arcArr.get(j).getTarget().getKey()) != null) || (digraph.getArc(arcArr.get(j).getSource().getKey(), arcArr.get(i).getSource().getKey()) != null) ){
-							connectedNumPairNeighbor++;
-							//System.out.println("Added :D");
-						}
-					//case where i: v -> u, therefore same for j: u -> v
-					}else if( (arcArr.get(i).getTarget() == vertex) && (arcArr.get(j).getSource() == vertex) ){
-						if( (digraph.getArc(arcArr.get(i).getSource().getKey(), arcArr.get(j).getSource().getKey()) != null) || (digraph.getArc(arcArr.get(j).getTarget().getKey(), arcArr.get(i).getTarget().getKey()) != null) ){
-							connectedNumPairNeighbor++;
-							//System.out.println("Added :D");
-						}
-					//case where i: v -> u, therefore same for j: v -> u
-					}else if( (arcArr.get(i).getTarget() == vertex) && (arcArr.get(j).getTarget() == vertex) ){
-						if( (digraph.getArc(arcArr.get(i).getSource().getKey(), arcArr.get(j).getSource().getKey()) != null) || (digraph.getArc(arcArr.get(j).getSource().getKey(), arcArr.get(i).getSource().getKey()) != null) ){
-							connectedNumPairNeighbor++;
-							//System.out.println("Added :D");
-						}
-					//THIS SHOULD NOT OCCUR
-					}else{
-						System.out.println("ERROR: Error in ClusteringCoefficient().");
-						System.exit(0);
+		Iterator<Vertex<String>> ver = digraph.vertices(); 
+		while(ver.hasNext()){ 
+			Vertex<String> v = ver.next();
+			ArrayList<Vertex<String>> adjV = digraph.adjacentVertexArr(v); 
+			for(Vertex<String> i: adjV){ 
+				ArrayList<Vertex<String>> adjI = digraph.adjacentVertexArr(i);
+				adjI.remove(v);
+				for(Vertex<String> j: adjI){ 
+					totalTriangles++; 
+					if(adjV.contains(j)){ 
+						connectedTriangles++;
 					}
-					
 				}
 			}
 		}
-		return( connectedNumPairNeighbor/totalNumPairNeighbor );
-	}
+		System.out.println(connectedTriangles);
+		System.out.println(totalTriangles);
+		return connectedTriangles/totalTriangles; 
+	} 
 	
 	private static double MeanGeodesicDistance(){
 		double geoDist = 0;
