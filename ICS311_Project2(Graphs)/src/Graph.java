@@ -27,7 +27,6 @@
 
 import java.util.ArrayList;
 import java.util.EmptyStackException;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
@@ -341,6 +340,7 @@ public class Graph<E extends Comparable<E>> {
 		return(insertArc(arc));
 	}
 	
+	@SuppressWarnings("unchecked")
 	public Arc<E> insertArc(Arc<E> arc){
 		Vertex<E> u = arc.getSource();
 		Vertex<E> v = arc.getTarget();
@@ -365,13 +365,15 @@ public class Graph<E extends Comparable<E>> {
 		if(!reversing){
 			//check if the reverse arc exists
 			Arc<E> undirectedArc = null;
-			if( (undirectedArc = getArc(v.getKey(),u.getKey())) != null){
-				System.out.println("Edge not Added: " + arc.toString());
+			if( (undirectedArc = getArc(v
+					.getKey(),u
+					.getKey())) != null){
+				//System.out.println("Edge not Added: " + arc.toString());
 				//if so do not "add" this arc to the undirected graph
 				arc.setAnnotation((E) "undirected", false);
 				undirectedArc.setAnnotation((E)"undirected", true);
 			}else{
-				System.out.println("Edge: " + arc.toString());
+				//System.out.println("Edge: " + arc.toString());
 				//if not "add" arc to undirected graph
 				arc.setAnnotation((E)"undirected", true);
 				numEdges++;
@@ -379,22 +381,22 @@ public class Graph<E extends Comparable<E>> {
 				//since adding new edge, update the edgeAdjTree to match
                 //add edge to source vertex
                 if(edgeAdjTree.get(v.getKey()) == null){
-                        System.out.println("\tAdded under: " + v.getKey());
+                        //System.out.println("\tAdded under: " + v.getKey());
                         BinarySearchTree<E> bst = new BinarySearchTree<E>();
                         bst.insert(u.getKey(),arc);
                         edgeAdjTree.put(v.getKey(), bst);
                 }else{
-                        System.out.println("\tAdded under: " + v.getKey());
+                        //System.out.println("\tAdded under: " + v.getKey());
                         edgeAdjTree.get(v.getKey()).insert(u.getKey(), arc);
                 }
                 //add edge to target vertex
                 if(edgeAdjTree.get(u.getKey()) == null){
-                        System.out.println("\tAdded under: " + u.getKey());
+                        //System.out.println("\tAdded under: " + u.getKey());
                         BinarySearchTree<E> bst = new BinarySearchTree<E>();
                         bst.insert(v.getKey(),arc);
                         edgeAdjTree.put(u.getKey(), bst);
                 }else{
-                        System.out.println("\tAdded under: " + u.getKey());
+                        //System.out.println("\tAdded under: " + u.getKey());
                         edgeAdjTree.get(u.getKey()).insert(v.getKey(), arc);
                 }
 			}
@@ -966,15 +968,31 @@ public class Graph<E extends Comparable<E>> {
 	//=================================================================================================
 	//=									      UNDIRECTED METHODS									  =
 	//=================================================================================================
-
+	
+	/**
+	 * Returns an iterator over the edges.
+	 * 
+	 * @return
+	 */
 	public Iterator<Arc<E>> edges(){
 		return new EdgeIterator();
 	}
 	
+	/**
+	 * Returns the number of edges, both directed and undirected.
+	 * 
+	 * @return
+	 */
 	public int numEdges(){
 		return(numEdges);
 	}
 	
+	/**
+	 * Returns the number of edges (directed and undirected) incident on vertex given.
+	 * 
+	 * @param vertex
+	 * @return
+	 */
 	public int degree(Vertex<E> vertex){
 		//cannot just return inDegree() + outDegree() because if you have u -> v and v -> u  the degree(u) = 2 when it should equal 1 in a undirected graph
 		//if there is no entry (bst) under the vertex key in the edgeAdjTree it means that vertex is isolated
@@ -986,25 +1004,32 @@ public class Graph<E extends Comparable<E>> {
 		return(edgeAdjTree.get(vertex.getKey()).size());
 	}
 	
+	/**
+	 * Returns an iterator of the vertices adjacent to vertex given.
+	 * 
+	 * @param vertex
+	 * @return
+	 */
 	public Iterator<Vertex<E>> adjacentVertices(Vertex<E> vertex){
-		return vertices();
+		return(new adjacentVertexIterator(vertex));
 	}
 	
-	public ArrayList<Vertex<E>> adjacentVertexArr(Vertex<E>  vertex){
-		ArrayList<Vertex<E>> arr = new ArrayList<Vertex<E>>();
-		
-		Iterator<Vertex<E>> vertexIter = adjacentVertices(vertex);
-		while(vertexIter.hasNext()){
-			arr.add(vertexIter.next());
-		}
-		
-		return(arr);
-	}
-	
+	/**
+	 * Returns an iterator of the edges incident on vertex given.
+	 * 
+	 * @param vertex
+	 * @return
+	 */
 	public Iterator<Arc<E>> incidentEdges(Vertex<E> vertex){
 		return new adjacentEdgeIterator(vertex);
 	}
 	
+	/**
+	 * Returns an array of 2 end vertices of edge a.
+	 * 
+	 * @param a
+	 * @return
+	 */
 	public ArrayList<Vertex<E>> endVertices(Arc<E> a){
 		ArrayList<Vertex<E>> arr = new ArrayList<Vertex<E>>();
 		arr.add(a.getSource());
@@ -1013,6 +1038,16 @@ public class Graph<E extends Comparable<E>> {
 		return(arr);
 	}
 	
+	/**
+	 * Given vertex as the endpoint of edge arc.
+	 * Returns the end vertex of edge arac different from the given vertex.
+	 * Throws InvalidEdgeException when vertex is not an endpoint of edge.
+	 * 
+	 * @param vertex
+	 * @param arc
+	 * @return
+	 * @throws Exception
+	 */
 	public Vertex<E> opposite(Vertex<E> vertex, Arc<E> arc) throws Exception{
 		if(arc.getSource() == vertex){
 			return(arc.getTarget());
@@ -1023,20 +1058,38 @@ public class Graph<E extends Comparable<E>> {
 		}
 	}
 	
+	/**
+	 * Returns an iterator over the undirected edges.
+	 * 
+	 * @return
+	 */
 	public Iterator<Arc<E>> undirectedEdges(){
 		return arcs();
 		//TODO
 	}
 	
+	/**
+	 * Returns true if e is directed, false otherwise.
+	 * 
+	 * @param a
+	 * @return
+	 */
 	public boolean isDirected(Arc<E> a){
 		return false;
 		//TODO
 	}
 	
+	/**
+	 * Nested class Iterator over all edges in graph.
+	 * 
+	 * @author Jasmine Ishigami
+	 *
+	 */
 	private class EdgeIterator implements Iterator<Arc<E>>{
 		private Arc<E> last;
 		private Stack<Arc<E>> stack;
 		
+		@SuppressWarnings("unchecked")
 		private EdgeIterator(){
 			last = null;
 			stack = new Stack<Arc<E>>();
@@ -1081,6 +1134,12 @@ public class Graph<E extends Comparable<E>> {
 		}	
 	}
 	
+	/**
+	 * Nested class Iterator over all incident edges to given vertex.
+	 * 
+	 * @author Jasmine Ishigami
+	 *
+	 */
 	private class adjacentEdgeIterator implements Iterator<Arc<E>>{
 		private Arc<E> last;
 		private Stack<Arc<E>> stack;
@@ -1116,6 +1175,67 @@ public class Graph<E extends Comparable<E>> {
 
 		@Override
 		public Arc<E> next() {
+			try{
+				last = stack.pop();
+				return(last);
+			}
+			catch(EmptyStackException e){
+				last = null;
+				throw new NoSuchElementException();
+			}
+		}
+
+		@Override
+		public void remove() {
+			System.out.println("Remove of EdgeIterator not yet implemented");	
+		}	
+	}
+	
+	
+	/**
+	 * Nested class Iterator over all incident vertices to given vertex.
+	 * 
+	 * @author Jasmine Ishigami
+	 *
+	 */
+	private class adjacentVertexIterator implements Iterator<Vertex<E>>{
+		private Vertex<E> last;
+		private Stack<Vertex<E>> stack;
+		
+		private adjacentVertexIterator(Vertex<E> vertex){
+			last = null;
+			stack = new Stack<Vertex<E>>();
+			
+			//if vertex has no adjacent edges exit
+            Iterator<Arc<E>> edgeIterator = incidentEdges(vertex);
+            while(edgeIterator.hasNext()){
+            	Arc<E> arc = edgeIterator.next();
+            	Vertex<E> source = arc.getSource();
+            	Vertex<E> target = arc.getTarget();
+            	if(source == vertex){
+            		stack.add(target);
+            	}
+            	if(target == vertex){
+            		stack.add(source);
+            	}
+            }
+		}
+		
+		@Override
+		public boolean hasNext() {
+			try{
+				if(stack.peek()!=null){
+					return(true);
+				}
+				return(false);
+			  }
+			  catch(EmptyStackException e){
+				  return(false);
+			  }
+		}
+
+		@Override
+		public Vertex<E> next() {
 			try{
 				last = stack.pop();
 				return(last);

@@ -49,7 +49,7 @@ public class DirectedGraphTester {
 			System.out.println("Does the outVertexIterator match?");
 			System.out.println("\tOutVertex:");
 			System.out.printf("%20s %20s %20s\n", "Vertex", "Expected Out Vertices", "Actual Out Vertices");
-			Iterator iter = GraphDriver.digraph.outAdjacentVertices(GraphDriver.digraph.getVertex("37"));
+			Iterator<Vertex<String>> iter = GraphDriver.digraph.outAdjacentVertices(GraphDriver.digraph.getVertex("37"));
 			String str = "";
 			while(iter.hasNext()){
 				str = str + ((Vertex<String>)iter.next()).getKey() + ", ";

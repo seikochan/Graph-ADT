@@ -29,13 +29,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -66,7 +60,7 @@ public class GraphDriver {
 	private static int totalSCC = -1;
 	private static int largestSCCVertices = -1;
 	private static double maxGeodesicDistance = -1;
-	private static boolean fullSCCPrint = true;
+	private static boolean fullSCCPrint = false;
 	private static boolean SCCPrint = true;
 	
 	/**
@@ -124,7 +118,7 @@ public class GraphDriver {
 	 * @param fileName
 	 */
 	public static void parseData(String fileName){
-		System.out.println("Entered parseData()");
+		//System.out.println("Entered parseData()");
 		final int NODE_DATA = 0;
 		final int TIE_DATA = 1;
 		final int ERROR_DATA = -1;
@@ -179,14 +173,20 @@ public class GraphDriver {
 						String[] strArr = currLine.split("\\s+");
 						if(strArr.length==2){
 							//System.out.println("Inserting Arc: " + strArr[0] + " , " + strArr[1]);
-							digraph.insertArc(digraph.getVertex(strArr[0]) , digraph.getVertex(strArr[1]));
+							//add only if not a self-loop
+							if(!(strArr[0].equals(strArr[1]))){
+								digraph.insertArc(digraph.getVertex(strArr[0]) , digraph.getVertex(strArr[1]));
+							}
 						}else{
 							//System.out.println("Inserting Arc: " + strArr[0] + " , " + strArr[1]);
 							String dataStr = "";
 							for(int i = 2; i < strArr.length; i++){
 								dataStr = dataStr + strArr[i] + " ";
 							}
-							digraph.insertArc(digraph.getVertex(strArr[0]) ,digraph.getVertex(strArr[1]), dataStr);
+							//add only if not a self-loop
+							if(!(strArr[0].equals(strArr[1]))){
+								digraph.insertArc(digraph.getVertex(strArr[0]) ,digraph.getVertex(strArr[1]), dataStr);
+							}
 						}
 					}else{
 						System.out.println("ERROR: .VNA file not set up correctly.  Need to have '*Node Data' or '*Tie Data' at beginning of file.");
@@ -345,7 +345,7 @@ public class GraphDriver {
 	 * 
 	 */
 	public static void Transpose(){
-		System.out.println("--------Entered: Transpose--------");
+		//System.out.println("--------Entered: Transpose--------");
 		Iterator<Arc<String>> arcIter = digraph.arcs();
 		while(arcIter.hasNext()){
 			Arc<String> arc = (Arc<String>) arcIter.next();
@@ -435,9 +435,9 @@ public class GraphDriver {
 				reciprocated++;
 			}
 		}		
-		System.out.println("ADSG");
-		System.out.println(reciprocated);
-		System.out.println(digraph.numArcs());
+		//System.out.println("ADSG");
+		//System.out.println(reciprocated);
+		//System.out.println(digraph.numArcs());
 		return(reciprocated/digraph.numArcs());
 	}
 	
@@ -464,16 +464,18 @@ public class GraphDriver {
 		double Se = 0;
 		double count = 0;
 		
+		//go through all the vertices
 		Iterator<Vertex<String>> vertexIter = digraph.vertices();
 		while(vertexIter.hasNext()){
 			Vertex<String> vertex = (Vertex<String>) vertexIter.next();
 			double degree = digraph.degree(vertex);
-			System.out.println("vertex - " + vertex.getKey() + " : " + degree);
+			//System.out.println("vertex - " + vertex.getKey() + " : " + degree);
 			S1 = S1 + degree;
 			S2 = S2 + Math.pow(degree, 2.0);
 			S3 = S3 + Math.pow(degree, 3.0);
 		}
 		
+		//go over all the edges (undirected)
 		Iterator<Arc<String>> edgeIterator = digraph.edges();
 		while(edgeIterator.hasNext()){
 			count ++;
@@ -481,17 +483,17 @@ public class GraphDriver {
 			Se = Se + (digraph.degree(edge.getSource()) * digraph.degree(edge.getTarget()) );
 		}
 		Se = Se * 2;
-		System.out.println("S1: " + S1);
-		System.out.println("S2: " + S2);
-		System.out.println("S3: " + S3);
-		System.out.println("Se: " + Se);
-		System.out.println("Edges: " + count);
+		//System.out.println("S1: " + S1);
+		//System.out.println("S2: " + S2);
+		//System.out.println("S3: " + S3);
+		//System.out.println("Se: " + Se);
+		//System.out.println("Edges: " + count);
 		double formula = ( ( (S1*Se) - Math.pow(S2, 2) ) / ( (S1 * S3) - Math.pow(S2, 2) ) );
 		return formula;
 	}
 	
 	/**
-	 * "Are my friends friends with each other?
+	 * "Are my friends friends with each other?"
 	 * 
 	 * AKA: Triadic Closure; Transitivity
 	 * Computes the percentage of triads (3 vertices) for which there exists edges (u,v) and (u,w)(the denominator)
@@ -505,36 +507,62 @@ public class GraphDriver {
 	private static double ClusteringCoefficient(){
 		double connectedTriangles = 0;
 		double totalTriangles = 0;
+		int count = 0;
 		
-		Iterator<Vertex<String>> ver = digraph.vertices(); 
-		while(ver.hasNext()){ 
-			Vertex<String> v = ver.next();
-			ArrayList<Vertex<String>> adjV = digraph.adjacentVertexArr(v); 
-			for(Vertex<String> i: adjV){ 
-				ArrayList<Vertex<String>> adjI = digraph.adjacentVertexArr(i);
-				adjI.remove(v);
-				for(Vertex<String> j: adjI){ 
-					totalTriangles++; 
-					if(adjV.contains(j)){ 
-						connectedTriangles++;
+		//iterate over all the vertices
+		Iterator<Vertex<String>> vertexIter = digraph.vertices(); 
+		while(vertexIter.hasNext()){ 
+			count++;
+			Vertex<String> a = vertexIter.next();
+			Iterator<Vertex<String>> adjVertexIter = digraph.adjacentVertices(a);
+			
+			//then over all the adjacent vertices
+			while(adjVertexIter.hasNext()){
+				Vertex<String> b = adjVertexIter.next();
+				Iterator<Vertex<String>> adjadjVertexIter = digraph.adjacentVertices(b);
+				
+				//then over all the adjacent vertices of the adjacent vertices
+				while(adjadjVertexIter.hasNext()){
+					Vertex<String> c = adjadjVertexIter.next();
+					if(c != a){
+						if(digraph.getArc(a.getKey(), c.getKey()) != null){
+							connectedTriangles++;
+						}
+						else if(digraph.getArc(c.getKey(), a.getKey()) != null){
+							connectedTriangles++;
+						}
+						totalTriangles++;
 					}
 				}
 			}
-		}
-		System.out.println(connectedTriangles);
-		System.out.println(totalTriangles);
+		}		
+		//System.out.println(connectedTriangles);
+		//System.out.println(totalTriangles);
+		//System.out.println(count);
 		return connectedTriangles/totalTriangles; 
 	} 
 	
+	/**
+	 * "Is this a 'small world'?"
+	 * 
+	 * AKA: average path length
+	 * maximum path length = diameter
+	 * Compute the average length of the shortest path between each pair of vertices in the graph.
+	 * 
+	 * @return
+	 */
 	private static double MeanGeodesicDistance(){
 		double geoDist = 0;
 		double numPath = 0;
 		
+		//iterate over all the vertices
 		Iterator<Vertex<String>> vertexIter = digraph.vertices();
 		while(vertexIter.hasNext()){
 			Vertex<String> start = vertexIter.next();
+			//do BFS on each vertex
 			BreathFirstSearch(start);
 			Iterator<Vertex<String>> vertexIter2 = digraph.vertices();
+			//and sum up all the shortest paths found by BFS as well as the number of paths
 			while(vertexIter2.hasNext()){
 				Vertex<String> vertex = vertexIter2.next();
 				if( (digraph.getAnnotations(vertex, "DISTANCE") != "inf") && (digraph.getAnnotations(vertex, "DISTANCE") != "0.0")){
@@ -550,27 +578,46 @@ public class GraphDriver {
 		return(geoDist/numPath);		
 	}
 	
+	/**
+	 * Helper method for Mean Geodesic Distance of BFS.
+	 * An ADT that uses the idea of a FIFO queue to explore nodes at each distance before going to the next distance (ie. a tsunami effect).
+	 * It helps to find the shortest distance from a source vertex to all other vertices.
+	 * 
+	 * COLORS:	
+	 * 		white - not yet visited
+	 * 		gray  -	visited but not yet processed
+	 * 		black -	visited and processed
+	 * 
+	 * @param start
+	 */
 	private static void BreathFirstSearch(Vertex<String> start){
+		//iterate over all the vertices
 		Iterator<Vertex<String>> vertexIter = digraph.vertices();
 		while(vertexIter.hasNext()){
 			Vertex<String> vertex = vertexIter.next();
+			//intialize all vertices other than the start vertex
 			if(!vertex.equals(start)){
 				digraph.setAnnotations(vertex, "COLOR", "white");
 				digraph.setAnnotations(vertex, "DISTANCE", "inf");
 				digraph.setAnnotations(vertex, "PARENT", "nil");
 			}
 		}
+		//set the start vertex info
 		digraph.setAnnotations(start, "COLOR", "gray");
 		digraph.setAnnotations(start, "DISTANCE", "0.0");
 		digraph.setAnnotations(start, "PARENT", "nil");
+		//initialze queue and add in start vertex
 		Queue<Vertex<String>> queue = new LinkedList<Vertex<String>>();
 		queue.offer(start);
 		while(!queue.isEmpty()){
 			Vertex<String> currVertex = queue.poll();
+			//for each adjacent vertex
 			Iterator<Vertex<String>> adjVertexIter =digraph.outAdjacentVertices(currVertex);
 			while(adjVertexIter.hasNext()){
 				Vertex<String> adjVertex = adjVertexIter.next();
+				//that has not yet been visited
 				if(digraph.getAnnotations(adjVertex, "COLOR").equals("white")){
+					//update its color and parent, increment the distance
 					digraph.setAnnotations(adjVertex, "COLOR", "gray");
 					double dist =Double.valueOf((String)digraph.getAnnotations(currVertex, "DISTANCE"));
 					dist = dist + 1.0;
