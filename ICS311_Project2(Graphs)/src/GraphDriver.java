@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * Creates a Directed Graph ADT based off of the node data and tie data provided in the .vna file.
@@ -64,6 +65,7 @@ public class GraphDriver {
 	private static String outDegreeStats = "";
 	private static int totalSCC = -1;
 	private static int largestSCCVertices = -1;
+	private static double maxGeodesicDistance = -1;
 	private static boolean fullSCCPrint = true;
 	private static boolean SCCPrint = true;
 	
@@ -80,7 +82,7 @@ public class GraphDriver {
 		System.out.println("------------------------------------------------------------");
 		System.out.println("|V| = " + digraph.numVertices());
 		System.out.println("|A| = " + digraph.numArcs());
-		System.out.println("|E| = " + digraph.numEdges() + ", " + digraph.numEdges);
+		System.out.println("|E| = " + digraph.numEdges());
 		System.out.printf("Density = %.3f%n",getDensity());
 		DegreeStats();
 		System.out.println("Degree distribution: minimum  average  maximum");
@@ -111,6 +113,8 @@ public class GraphDriver {
 		System.out.println("Reciprocity: " + Reciprocity());
 		System.out.println("Degree Correlation: " + DegreeCorrelation());
 		System.out.println("Clustering Coefficient: " + ClusteringCoefficient());
+		System.out.println("Mean Geodesic Distance " + MeanGeodesicDistance());
+		System.out.println("Diameter: " + maxGeodesicDistance);
 		
 	}
 	
@@ -455,28 +459,31 @@ public class GraphDriver {
 		double S2 = 0;
 		double S3 = 0;
 		double Se = 0;
+		double count = 0;
 		
 		Iterator<Vertex<String>> vertexIter = digraph.vertices();
 		while(vertexIter.hasNext()){
-			
 			Vertex<String> vertex = (Vertex<String>) vertexIter.next();
-			System.out.println("vertex - " + vertex.getKey() + " : " + digraph.degree(vertex));
-			S1 = S1 + digraph.degree(vertex);
-			S2 = S2 + Math.pow(digraph.degree(vertex), 2);
-			S3 = S3 + Math.pow(digraph.degree(vertex), 3);
+			double degree = digraph.degree(vertex);
+			System.out.println("vertex - " + vertex.getKey() + " : " + degree);
+			S1 = S1 + degree;
+			S2 = S2 + Math.pow(degree, 2.0);
+			S3 = S3 + Math.pow(degree, 3.0);
 		}
 		
 		Iterator<Arc<String>> edgeIterator = digraph.edges();
 		while(edgeIterator.hasNext()){
+			count ++;
 			Arc<String> edge = edgeIterator.next();
 			Se = Se + (digraph.degree(edge.getSource()) * digraph.degree(edge.getTarget()) );
 		}
-		
+		Se = Se * 2;
 		System.out.println("S1: " + S1);
 		System.out.println("S2: " + S2);
 		System.out.println("S3: " + S3);
 		System.out.println("Se: " + Se);
-		double formula = ( ( (S1*Se*2) - Math.pow(S2, 2) ) / ( (S1 * S3) - Math.pow(S2, 2) ) );
+		System.out.println("Edges: " + count);
+		double formula = ( ( (S1*Se) - Math.pow(S2, 2) ) / ( (S1 * S3) - Math.pow(S2, 2) ) );
 		return formula;
 	}
 	
@@ -556,5 +563,62 @@ public class GraphDriver {
 			}
 		}
 		return( connectedNumPairNeighbor/totalNumPairNeighbor );
+	}
+	
+	private static double MeanGeodesicDistance(){
+		double geoDist = 0;
+		double numPath = 0;
+		
+		Iterator<Vertex<String>> vertexIter = digraph.vertices();
+		while(vertexIter.hasNext()){
+			Vertex<String> start = vertexIter.next();
+			BreathFirstSearch(start);
+			Iterator<Vertex<String>> vertexIter2 = digraph.vertices();
+			while(vertexIter2.hasNext()){
+				Vertex<String> vertex = vertexIter2.next();
+				if( (digraph.getAnnotations(vertex, "DISTANCE") != "inf") && (digraph.getAnnotations(vertex, "DISTANCE") != "0.0")){
+					numPath++;
+					double distance = Double.valueOf((String)digraph.getAnnotations(vertex, "DISTANCE"));
+					geoDist = geoDist + distance;
+					if(distance > maxGeodesicDistance){
+						maxGeodesicDistance = distance;
+					}
+				}
+			}	
+		}
+		return(geoDist/numPath);		
+	}
+	
+	private static void BreathFirstSearch(Vertex<String> start){
+		Iterator<Vertex<String>> vertexIter = digraph.vertices();
+		while(vertexIter.hasNext()){
+			Vertex<String> vertex = vertexIter.next();
+			if(!vertex.equals(start)){
+				digraph.setAnnotations(vertex, "COLOR", "white");
+				digraph.setAnnotations(vertex, "DISTANCE", "inf");
+				digraph.setAnnotations(vertex, "PARENT", "nil");
+			}
+		}
+		digraph.setAnnotations(start, "COLOR", "gray");
+		digraph.setAnnotations(start, "DISTANCE", "0.0");
+		digraph.setAnnotations(start, "PARENT", "nil");
+		Queue<Vertex<String>> queue = new LinkedList<Vertex<String>>();
+		queue.offer(start);
+		while(!queue.isEmpty()){
+			Vertex<String> currVertex = queue.poll();
+			Iterator<Vertex<String>> adjVertexIter =digraph.outAdjacentVertices(currVertex);
+			while(adjVertexIter.hasNext()){
+				Vertex<String> adjVertex = adjVertexIter.next();
+				if(digraph.getAnnotations(adjVertex, "COLOR").equals("white")){
+					digraph.setAnnotations(adjVertex, "COLOR", "gray");
+					double dist =Double.valueOf((String)digraph.getAnnotations(currVertex, "DISTANCE"));
+					dist = dist + 1.0;
+					digraph.setAnnotations(adjVertex, "DISTANCE", String.valueOf(dist));
+					digraph.setAnnotations(adjVertex, "PARENT", currVertex);
+					queue.offer(adjVertex);
+				}
+			}
+			digraph.setAnnotations(currVertex, "COLOR", "black");
+		}
 	}
 }

@@ -77,19 +77,17 @@ public class Graph<E extends Comparable<E>> {
 	//			|  |
 	// * key of items in BST is referenced by target key of arc.
 	public Hashtable<E, BinarySearchTree<E>> inAdjTree;
-	//shows all undirected edges in graph
-	public Hashtable <String,Arc<E>> edges;
 	//represents an AdjacencyTree of incident edges on each vertex
-	//need to keep a separate hashtable since it needs to disregard u -> v and v-> u and just make 1 edge (u,v)
-	private Hashtable<E, BinarySearchTree<E>> edgeAdjTree;
+    //need to keep a separate hashtable since it needs to disregard u -> v and v-> u and just make 1 edge (u,v)
+    private Hashtable<E, BinarySearchTree<E>> edgeAdjTree;
 	//true only when reverseDirection is called
 	private boolean reversing;
+	
 	
 	//-------------------------------CONSTRUCTOR(S)------------------------------------
 	public Graph(){
 		numVertices = 0;
 		numArcs = 0;
-		edges = new Hashtable<String,Arc<E>>();
 		outAdjTree = new Hashtable<E, BinarySearchTree<E>>();
 		inAdjTree = new Hashtable<E, BinarySearchTree<E>>();
 		edgeAdjTree = new Hashtable<E, BinarySearchTree<E>>();
@@ -365,36 +363,40 @@ public class Graph<E extends Comparable<E>> {
 		u.addOutDegree();
 		
 		if(!reversing){
-			//update edges list, as in the undirected edges of the graph
-			Arc<E> reverseArc = new Arc<E>(v,u);
-			System.out.println("contains Arc " + arc.toString() + ": " + edges.contains(arc));
-			System.out.println("contains reverseArc " + reverseArc.toString() + ": " + edges.contains(reverseArc));
-			 if( (!edges.contains(arc)) && (!edges.contains(reverseArc)) ){
-				 System.out.println("Edge Added: " + arc.toString());
-                 edges.put(u.getKey().toString() + v.getKey().toString(), arc);
-                 numEdges++;
-                 
+			//check if the reverse arc exists
+			Arc<E> undirectedArc = null;
+			if( (undirectedArc = getArc(v.getKey(),u.getKey())) != null){
+				System.out.println("Edge not Added: " + arc.toString());
+				//if so do not "add" this arc to the undirected graph
+				arc.setAnnotation((E) "undirected", false);
+				undirectedArc.setAnnotation((E)"undirected", true);
+			}else{
+				System.out.println("Edge: " + arc.toString());
+				//if not "add" arc to undirected graph
+				arc.setAnnotation((E)"undirected", true);
+				numEdges++;
+				
 				//since adding new edge, update the edgeAdjTree to match
-				//add edge to source vertex
-				if(edgeAdjTree.get(v.getKey()) == null){
-					//System.out.println("\tAdded under: " + v.getKey());
-					BinarySearchTree<E> bst = new BinarySearchTree<E>();
-					bst.insert(u.getKey(),arc);
-					edgeAdjTree.put(v.getKey(), bst);
-				}else{
-					//System.out.println("\tAdded under: " + v.getKey());
-					edgeAdjTree.get(v.getKey()).insert(u.getKey(), arc);
-				}
-				//add edge to target vertex
-				if(edgeAdjTree.get(u.getKey()) == null){
-					//System.out.println("\tAdded under: " + u.getKey());
-					BinarySearchTree<E> bst = new BinarySearchTree<E>();
-					bst.insert(v.getKey(),arc);
-					edgeAdjTree.put(u.getKey(), bst);
-				}else{
-					//System.out.println("\tAdded under: " + u.getKey());
-					edgeAdjTree.get(u.getKey()).insert(v.getKey(), arc);
-				}
+                //add edge to source vertex
+                if(edgeAdjTree.get(v.getKey()) == null){
+                        System.out.println("\tAdded under: " + v.getKey());
+                        BinarySearchTree<E> bst = new BinarySearchTree<E>();
+                        bst.insert(u.getKey(),arc);
+                        edgeAdjTree.put(v.getKey(), bst);
+                }else{
+                        System.out.println("\tAdded under: " + v.getKey());
+                        edgeAdjTree.get(v.getKey()).insert(u.getKey(), arc);
+                }
+                //add edge to target vertex
+                if(edgeAdjTree.get(u.getKey()) == null){
+                        System.out.println("\tAdded under: " + u.getKey());
+                        BinarySearchTree<E> bst = new BinarySearchTree<E>();
+                        bst.insert(v.getKey(),arc);
+                        edgeAdjTree.put(u.getKey(), bst);
+                }else{
+                        System.out.println("\tAdded under: " + u.getKey());
+                        edgeAdjTree.get(u.getKey()).insert(v.getKey(), arc);
+                }
 			}
 		}
 		return(arc);
@@ -970,12 +972,12 @@ public class Graph<E extends Comparable<E>> {
 	}
 	
 	public int numEdges(){
-		return(edges.size());
+		return(numEdges);
 	}
 	
 	public int degree(Vertex<E> vertex){
 		//cannot just return inDegree() + outDegree() because if you have u -> v and v -> u  the degree(u) = 2 when it should equal 1 in a undirected graph
-		//if there is no entry (bst) under the vertex key in the edgeAdjTree it means that vertex is isolted
+		//if there is no entry (bst) under the vertex key in the edgeAdjTree it means that vertex is isolated
 		if(edgeAdjTree.get(vertex.getKey())==null){
 			return 0;
 		}
@@ -1029,8 +1031,12 @@ public class Graph<E extends Comparable<E>> {
 			last = null;
 			stack = new Stack<Arc<E>>();
 			
-			for(Map.Entry<String, Arc<E>> entry: edges.entrySet()){
-				stack.add(entry.getValue());
+			Iterator<Arc<E>> arcIter = arcs();
+			while(arcIter.hasNext()){
+				Arc<E> arc = arcIter.next();
+				if((boolean)arc.getAnnotation((E)"undirected")){
+					stack.add(arc);
+				}
 			}
 		}
 		
@@ -1075,14 +1081,14 @@ public class Graph<E extends Comparable<E>> {
 			stack = new Stack<Arc<E>>();
 			
 			//if vertex has no adjacent edges exit
-			if(edgeAdjTree.get(vertex.getKey()) == null){
-				return;
-			}
-			Iterator<Object> bstIter = edgeAdjTree.get(vertex.getKey()).iterator();
-			while(bstIter.hasNext()){
-				Arc<E> arc = (Arc<E>) bstIter.next();
-				stack.add(arc);
-			}
+            if(edgeAdjTree.get(vertex.getKey()) == null){
+                    return;
+            }
+            Iterator<Object> bstIter = edgeAdjTree.get(vertex.getKey()).iterator();
+            while(bstIter.hasNext()){
+                    Arc<E> arc = (Arc<E>) bstIter.next();
+                    stack.add(arc);
+            }
 		}
 		
 		@Override
